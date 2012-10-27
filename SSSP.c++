@@ -1,5 +1,14 @@
-/* Includes */
-#include <queue>
+/**
+ * To run the program:
+ *     g++ -lcppunit -ldl -Wall TestSSSP.c++ -o TestSSSP.app
+ */
+// --------
+// includes
+// --------
+#include <iostream>
+#include "Dijkstra.h"
+//#include "Ford.h"
+
 /**
  * Global Data Storage
  */
@@ -12,6 +21,25 @@ int A[MAX_SIZE][MAX_SIZE];
 bool valid[MAX_SIZE]; // might not need this?
 /* Priority Queue for dijkstra workload */
 std::priority_queue<int> work;
+
+
+using namespace std;
+/**
+ * Function Prototype
+ */
+void read_graph();
+void initialize();
+
+// ----
+// main
+// ----
+
+int main() {
+
+
+//    cout << "Done." << endl;
+    return 0;
+}
 
 /**
  * Read the input files.
@@ -28,10 +56,3 @@ void initialize(){
 
 }
 
-/**
- * Process Dijkstra algorithm.
- * Read the graph, initialize and run dijkstra algorithm
- */
-void dijkstra(){
-
-}
