@@ -2,21 +2,26 @@
 #include <queue>
 #include <vector>
 #include <cassert>
-#include "Graph.h"
 #include <limits.h>
+#include "Graph.h"
+
 
 #ifndef _DIJKSTRA_H
 #define _DIJKSTRA_H
 
-extern Graph A;
+/**
+ * Global container
+ */
+
 std::vector<double> dist;
+
 
 /**
  * Function prototype
  */
-void verify_dijkstra(const int N);
+void verify_dijkstra(Graph& A, const int N);
 void dijkstra_init(int SOURCE, const int N);
-
+void dijkstra_print(const int N);
 /**
  * Class to compare 2 nodes for the priority queue
  */
@@ -33,7 +38,7 @@ class CompareNode {
  * Process Dijkstra algorithm.
  * Read the graph, initialize and run dijkstra algorithm
  */
-void dijkstra(const int SOURCE) {
+void dijkstra(Graph& A, const int SOURCE) {
 	// Priority Queue for dijkstra workload
 	std::priority_queue<int, std::vector<int>, CompareNode > queue;
 	const int N = A.num_nodes();
@@ -51,10 +56,10 @@ void dijkstra(const int SOURCE) {
 				queue.push(y);
 			}
 	}
-	verify_dijkstra(N);
+	verify_dijkstra(A, N);
 }
 
-void verify_dijkstra(const int N){
+void verify_dijkstra(Graph& A, const int N){
 	for (int i = 0; i < N; ++i)
 		for (int j = 0; j < N; ++j)
 			if (A(i, j) < LONG_MAX)
@@ -67,5 +72,11 @@ void dijkstra_init(int SOURCE, const int N){
 		dist[i] = LONG_MAX;
 	}
 	dist[SOURCE] = 0;
+}
+
+void dijkstra_print(const int N){
+    for (int i = 0; i < N; ++i) {
+        std::cout << i << " " << dist[i] << std::endl;
+    }
 }
 #endif

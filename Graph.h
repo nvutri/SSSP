@@ -11,7 +11,7 @@ private:
 	std::vector< std::vector<double> > _m;
 	;
 public:
-	int num_nodes() {
+	int num_nodes() const {
 		return _m[0].size();
 	}
 	Graph(int NUM_NODES);
@@ -27,10 +27,7 @@ Graph::Graph(){
 Graph::Graph(int NUM_NODES) {
 	_m = std::vector< std::vector<double> >( NUM_NODES );
 	for (int i = 0; i < NUM_NODES; ++i) {
-		_m[i] = std::vector<double>(NUM_NODES);
-		for (int j = 0; j < NUM_NODES; ++j) {
-			_m[i][j] = LONG_MAX;
-		}
+		_m[i] = std::vector<double>(NUM_NODES, LONG_MAX);
 	}
 }
 //Todo change to CPR
