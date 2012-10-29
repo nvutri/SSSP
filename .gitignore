@@ -2,3 +2,4 @@
 .project
 *.app
 *.o
+graph.out
