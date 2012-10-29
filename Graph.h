@@ -1,5 +1,6 @@
 #include <vector>
 #include "Node.h"
+
 #ifndef _GRAPH_H
 #define _GRAPH_H
 
@@ -10,7 +11,7 @@ private:
 	std::vector< Node > _nodes;
 	;
 public:
-	int size() {
+	int num_nodes() {
 		return _nodes.size();
 	}
 	Graph();

@@ -6,30 +6,23 @@
 // includes
 // --------
 #include <iostream>
-#include <limits.h>
+
 #include "Dijkstra.h"
+#include "Graph.h"
 
-const int MAX_SIZE = 1000;
-
-/**
- * Global Data Storage
- */
-
-// Matrix storage TODO: switch to Compressed Row Storage
-double A[MAX_SIZE][MAX_SIZE];
-
-/**
- * Global Variables
- */
-int NUM_NODES, NUM_EDGES;
 using namespace std;
+
+/**
+ * Global Variable
+ */
+
+Graph A;
 
 /**
  * Function Prototype
  */
 void read_graph();
 void initialize();
-
 // ----
 // main
 // ----
@@ -37,7 +30,7 @@ void initialize();
 int main() {
 	initialize();
 	read_graph();
-	//TODO: dijkstra();
+	dijkstra(A[0]);
 	return 0;
 }
 
@@ -50,21 +43,20 @@ void read_graph() {
 	char graph_type[5];
 	char line[256];
 	int n1, n2;
-	double weight ;
+	int NUM_NODES, NUM_EDGES;
+	double weight;
+
 	while (cin >> line_type) {
 		if (line_type == 'c') {
 			cin.getline(line, 256, '\n');
-//			cout << line << "\n";
 		} else if (line_type == 'p') {
 			cin >> graph_type;
 			cin >> NUM_NODES; // Number of nodes
 			cin >> NUM_EDGES; // Number of edges
-//			cout << graph_type << "\n";
-//			cout << NUM_NODES << " " << NUM_EDGES << "\n";
 		} else if (line_type == 'a') {
 			cin >> n1 >> n2 >> weight;
-			A[n1][n2] = weight;
-			A[n2][n1] = weight;
+			Node node = A[ n1 ];
+			A[ n1 ][ n2 ] = weight;
 //			cout << n1 << " "  << n2 << " "<< A[n1][n2]<< endl;
 		} else
 			break;
@@ -76,9 +68,5 @@ void read_graph() {
  */
 void initialize() {
 	//Init all edges to max value
-	for (int i = 0; i < NUM_NODES; ++i)
-		for (int j = 0; j < NUM_NODES; ++j) {
-			A[i][j] = LONG_MAX;
-		}
 }
 
