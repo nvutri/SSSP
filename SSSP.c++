@@ -21,7 +21,6 @@ Graph A;
  * Function Prototype
  */
 void read_graph();
-void initialize();
 // ----
 // main
 // ----
@@ -54,7 +53,7 @@ void read_graph() {
 		}
 	}
 
-	NUM_NODES++ ;
+	NUM_NODES++ ;// Graph starts from Node 1
 	A = Graph(NUM_NODES);
 
 	while (cin >> line_type) {
@@ -69,12 +68,5 @@ void read_graph() {
 		} else
 			break;
 	}
-}
-
-/**
- * Initialize storage to correct state
- */
-void initialize() {
-	//Init all edges to max value
 }
 

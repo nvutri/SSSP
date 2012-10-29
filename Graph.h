@@ -17,7 +17,6 @@ public:
 	Graph(int NUM_NODES);
 	Graph();
 	double &operator()(int x, int y);
-//	std::vector<double>& operator()(int x);
 	void print();
 };
 
@@ -38,9 +37,5 @@ Graph::Graph(int NUM_NODES) {
 double& Graph::operator () (int x, int y){
 	return _m[x][y] ;
 }
-
-//std::vector<double>& Graph::operator()(int x){
-//	return _m[x];
-//}
 
 #endif

@@ -1,6 +1,7 @@
 /* Includes */
 #include <queue>
 #include <vector>
+#include <cassert>
 #include "Graph.h"
 #include <limits.h>
 
@@ -10,6 +11,15 @@
 extern Graph A;
 std::vector<double> dist;
 
+/**
+ * Function prototype
+ */
+void verify_dijkstra(const int N);
+void dijkstra_init(int SOURCE, const int N);
+
+/**
+ * Class to compare 2 nodes for the priority queue
+ */
 class CompareNode {
     public:
     bool operator()(int n1, int n2) // Returns true if t1 is earlier than t2
@@ -18,13 +28,7 @@ class CompareNode {
     }
 };
 
-void dijkstra_init(int SOURCE, const int N){
-	dist = std::vector<double>(N);
-	for (int i = 0; i < N; ++i) {
-		dist[i] = LONG_MAX;
-	}
-	dist[SOURCE] = 0;
-}
+
 /**
  * Process Dijkstra algorithm.
  * Read the graph, initialize and run dijkstra algorithm
@@ -47,8 +51,21 @@ void dijkstra(const int SOURCE) {
 				queue.push(y);
 			}
 	}
+	verify_dijkstra(N);
+}
+
+void verify_dijkstra(const int N){
+	for (int i = 0; i < N; ++i)
+		for (int j = 0; j < N; ++j)
+			if (A(i, j) < LONG_MAX)
+				assert(dist[i] + A(i, j) >= dist[j] );
+}
+
+void dijkstra_init(int SOURCE, const int N){
+	dist = std::vector<double>(N);
 	for (int i = 0; i < N; ++i) {
-		std::cout << i << " " << dist[i] << std::endl;
+		dist[i] = LONG_MAX;
 	}
+	dist[SOURCE] = 0;
 }
 #endif
