@@ -1,46 +1,54 @@
 /* Includes */
 #include <queue>
 #include <vector>
-#include "Node.h"
 #include "Graph.h"
+#include <limits.h>
 
 #ifndef _DIJKSTRA_H
 #define _DIJKSTRA_H
 
 extern Graph A;
+std::vector<double> dist;
+
 class CompareNode {
     public:
-    bool operator()(Node& n1, Node& n2) // Returns true if t1 is earlier than t2
+    bool operator()(int n1, int n2) // Returns true if t1 is earlier than t2
     {
-       return n1.dist < n2.dist;
+       return dist[n1] < dist[n2];
     }
 };
+
+void dijkstra_init(int SOURCE, const int N){
+	dist = std::vector<double>(N);
+	for (int i = 0; i < N; ++i) {
+		dist[i] = LONG_MAX;
+	}
+	dist[SOURCE] = 0;
+}
 /**
  * Process Dijkstra algorithm.
  * Read the graph, initialize and run dijkstra algorithm
  */
-void dijkstra(Node& SOURCE) {
+void dijkstra(const int SOURCE) {
 	// Priority Queue for dijkstra workload
-	std::priority_queue<Node, std::vector<Node>, CompareNode > queue;
+	std::priority_queue<int, std::vector<int>, CompareNode > queue;
+	const int N = A.num_nodes();
+	dijkstra_init(SOURCE, N);
 
-	SOURCE.dist = 0;
+
 	queue.push(SOURCE);
+
 	while (!queue.empty()){
-		Node x = queue.top();
+		int x = queue.top();
 		queue.pop();
-		for (int i = 0; i < x.num_edges(); ++i)
-		{
-			int y_id = x.get_index(i);
-			Node y = A[y_id];
-			if (y.dist > x.dist + x[y_id]){
-				y.dist = x.dist + x[y_id];
+		for (int y = 0; y < N; ++y)
+			if ( dist[y] > dist[x] + A(x,y) ){
+				dist[y] = dist[x] +  A(x,y);
 				queue.push(y);
 			}
-		}
 	}
-	for (int i = 0; i < A.num_nodes(); ++i) {
-		Node node = A[i];
-		std::cout << i << " " << node.dist << std::endl;
+	for (int i = 0; i < N; ++i) {
+		std::cout << i << " " << dist[i] << std::endl;
 	}
 }
 #endif

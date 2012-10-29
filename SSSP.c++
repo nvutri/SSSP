@@ -17,7 +17,6 @@ using namespace std;
  */
 
 Graph A;
-
 /**
  * Function Prototype
  */
@@ -28,9 +27,8 @@ void initialize();
 // ----
 
 int main() {
-	initialize();
 	read_graph();
-	dijkstra(A[0]);
+	dijkstra(1);
 	return 0;
 }
 
@@ -42,10 +40,9 @@ void read_graph() {
 	char line_type;
 	char graph_type[5];
 	char line[256];
-	int n1, n2;
+	int x, y;
 	int NUM_NODES, NUM_EDGES;
 	double weight;
-
 	while (cin >> line_type) {
 		if (line_type == 'c') {
 			cin.getline(line, 256, '\n');
@@ -53,11 +50,22 @@ void read_graph() {
 			cin >> graph_type;
 			cin >> NUM_NODES; // Number of nodes
 			cin >> NUM_EDGES; // Number of edges
-		} else if (line_type == 'a') {
-			cin >> n1 >> n2 >> weight;
-			Node node = A[ n1 ];
-			A[ n1 ][ n2 ] = weight;
-//			cout << n1 << " "  << n2 << " "<< A[n1][n2]<< endl;
+			break;
+		}
+	}
+
+	NUM_NODES++ ;
+	A = Graph(NUM_NODES);
+
+	while (cin >> line_type) {
+		if (line_type == 'c') {
+			cin.getline(line, 256, '\n');
+		}
+		else if (line_type == 'a') {
+			cin >> x >> y >> weight;
+			A(x, y) = weight;
+			A(y, x) = weight;
+//			cout << x << " " << y << " " << A(x, y) << endl;
 		} else
 			break;
 	}

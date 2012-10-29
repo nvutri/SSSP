@@ -1,5 +1,5 @@
 #include <vector>
-#include "Node.h"
+#include <limits.h>
 
 #ifndef _GRAPH_H
 #define _GRAPH_H
@@ -8,35 +8,39 @@ const int DEFAULT_SIZE = 100;
 
 class Graph {
 private:
-	std::vector< Node > _nodes;
+	std::vector< std::vector<double> > _m;
 	;
 public:
 	int num_nodes() {
-		return _nodes.size();
+		return _m[0].size();
 	}
+	Graph(int NUM_NODES);
 	Graph();
-	Graph(int num_node);
-	Node &operator[](int node);
+	double &operator()(int x, int y);
+//	std::vector<double>& operator()(int x);
 	void print();
 };
 
 Graph::Graph(){
-	// Initialize an empty _node vector
-	for (int i = 0; i < DEFAULT_SIZE; ++i) {
-		_nodes.push_back(Node());
-	}
+	_m = std::vector< std::vector<double> >();
 }
 
-Graph::Graph(int num_node){
-	// Initialize an empty _node vector
-	for (int i = 0; i < num_node; ++i) {
-		_nodes.push_back(Node());
+Graph::Graph(int NUM_NODES) {
+	_m = std::vector< std::vector<double> >( NUM_NODES );
+	for (int i = 0; i < NUM_NODES; ++i) {
+		_m[i] = std::vector<double>(NUM_NODES);
+		for (int j = 0; j < NUM_NODES; ++j) {
+			_m[i][j] = LONG_MAX;
+		}
 	}
 }
-
 //Todo change to CPR
-Node& Graph::operator [] (int node){
-	return _nodes[ node ] ;
+double& Graph::operator () (int x, int y){
+	return _m[x][y] ;
 }
+
+//std::vector<double>& Graph::operator()(int x){
+//	return _m[x];
+//}
 
 #endif
