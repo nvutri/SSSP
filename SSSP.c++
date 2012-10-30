@@ -9,16 +9,27 @@
 
 #include "Graph.h"
 #include "Dijkstra.h"
-//#include "Ford.h"
-
+#include "Ford.h"
 
 using namespace std;
+
+
+/**
+ * Global container
+ */
+
+std::vector<double> dist;
+
 
 /**
  * Function Prototype
  */
 void read_graph(Graph& A);
 void read_graph_dimension(int& NUM_NODES, int& NUM_EDGES);
+
+void dist_init(int SOURCE, const int N);
+void dist_verify(Graph& A, const int N);
+void dist_print(const int N);
 
 // ----
 // main
@@ -29,8 +40,16 @@ int main() {
     read_graph_dimension(NUM_NODES, NUM_EDGES);
     Graph A(NUM_NODES, NUM_EDGES);
 	read_graph(A);
-	dijkstra(A, 1);
-	dijkstra_print(NUM_NODES);
+
+	int SOURCE = 1;
+	//Initialization
+	dist_init(SOURCE, NUM_NODES);
+
+	Bellmanford(A, SOURCE);
+
+	dist_verify(A, NUM_NODES);
+	dist_print(NUM_NODES);
+
 	return 0;
 }
 
@@ -82,4 +101,29 @@ void read_graph(Graph& A) {
 	}
 //	A.print();
 }
+
+void dist_init(int SOURCE, const int N) {
+    dist = std::vector<double>(N);
+    for (int i = 0; i < N; ++i) {
+        dist[i] = LONG_MAX;
+    }
+    dist[SOURCE] = 0;
+}
+
+void dist_verify(Graph& A, const int N){
+    for (int x = 0; x < N; ++x){
+        const int NUM_EDGES = A.num_edges(x);
+        for (int edge_index = 0; edge_index < NUM_EDGES; ++edge_index) {
+            int y = A.vertex(x, edge_index);
+            assert(dist[x] + A(x, edge_index) >= dist[y]);
+        }
+    }
+}
+
+void dist_print(const int N){
+    for (int i = 1; i < N; ++i) {
+        std::cout << i << " " << dist[i] << std::endl;
+    }
+}
+
 

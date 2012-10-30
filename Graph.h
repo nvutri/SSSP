@@ -32,7 +32,7 @@ class Graph {
  * Require number of nodes, and number of edges
  */
 Graph::Graph(int NUM_NODES, int NUM_EDGES)
-        : _val(NUM_EDGES, LONG_MAX),
+        : _val(NUM_EDGES, 0),
           _col_ind(NUM_EDGES, 0),
           // it needs an extra +1 to know where to stop
           _row_ptr(NUM_NODES + 1, 0),
@@ -99,15 +99,15 @@ int Graph::vertex(int x, int index){
  * Print matrix containers
  */
 void Graph::print() {
-    for (unsigned int i = 0; i < _val.size(); ++i) {
+    for (unsigned int i = 1; i < _val.size(); ++i) {
         std::cout << _val[i] << " ";
     }
     std::cout << std::endl;
-    for (unsigned int i = 0; i < _col_ind.size(); ++i) {
+    for (unsigned int i = 1; i < _col_ind.size(); ++i) {
         std::cout << _col_ind[i] << " ";
     }
     std::cout << std::endl;
-    for (unsigned int i = 0; i < _row_ptr.size(); ++i) {
+    for (unsigned int i = 1; i < _row_ptr.size(); ++i) {
         std::cout << _row_ptr[i] << " ";
     }
     std::cout << std::endl;
