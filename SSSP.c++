@@ -9,7 +9,7 @@
 
 #include "Graph.h"
 #include "Dijkstra.h"
-#include "Ford.h"
+//#include "Ford.h"
 
 
 using namespace std;
@@ -18,15 +18,16 @@ using namespace std;
  * Function Prototype
  */
 void read_graph(Graph& A);
-int read_graph_dimension();
+void read_graph_dimension(int& NUM_NODES, int& NUM_EDGES);
 
 // ----
 // main
 // ----
 
 int main() {
-    int NUM_NODES = read_graph_dimension();
-    Graph A(NUM_NODES);
+    int NUM_NODES, NUM_EDGES;
+    read_graph_dimension(NUM_NODES, NUM_EDGES);
+    Graph A(NUM_NODES, NUM_EDGES);
 	read_graph(A);
 	dijkstra(A, 1);
 	dijkstra_print(NUM_NODES);
@@ -38,11 +39,13 @@ int main() {
  * @return: graph number of nodes
  */
 
-int read_graph_dimension(){
+void read_graph_dimension(int& NUM_NODES, int& NUM_EDGES){
     char line_type;
     char graph_type[5];
     char line[256];
-    int NUM_NODES = -1, NUM_EDGES;
+    NUM_NODES = -1;
+    NUM_EDGES = -1;
+
     while (NUM_NODES == -1 && cin >> line_type ) {
         if (line_type == 'c') {
             cin.getline(line, 256, '\n');
@@ -52,8 +55,10 @@ int read_graph_dimension(){
             cin >> NUM_EDGES; // Number of edges
         }
     }
-    NUM_NODES++ ;// Graph starts from Node 1
-    return NUM_NODES;
+    // Graph starts from Node 1
+    NUM_NODES++ ;
+    NUM_EDGES++ ;
+
 }
 /**
  * Read the input files.
@@ -71,11 +76,10 @@ void read_graph(Graph& A) {
 		}
 		else if (line_type == 'a') {
 			cin >> x >> y >> weight;
-			A(x, y) = weight;
-			A(y, x) = weight;
-//			cout << x << " " << y << " " << A(x, y) << endl;
+			A.insert(x, y , weight);
 		} else
 			break;
 	}
+//	A.print();
 }
 

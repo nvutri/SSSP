@@ -33,7 +33,6 @@ class CompareNode {
     }
 };
 
-
 /**
  * Process Dijkstra algorithm.
  * Read the graph, initialize and run dijkstra algorithm
@@ -42,28 +41,35 @@ void dijkstra(Graph& A, const int SOURCE) {
 	// Priority Queue for dijkstra workload
 	std::priority_queue<int, std::vector<int>, CompareNode > queue;
 	const int N = A.num_nodes();
+	int x, y, NUM_EDGES;
 	dijkstra_init(SOURCE, N);
 
 
 	queue.push(SOURCE);
 
 	while (!queue.empty()){
-		int x = queue.top();
+		x = queue.top();
 		queue.pop();
-		for (int y = 0; y < N; ++y)
-			if ( dist[y] > dist[x] + A(x,y) ){
-				dist[y] = dist[x] +  A(x,y);
+		NUM_EDGES = A.num_edges(x);
+		for (int edge_index = 0; edge_index < NUM_EDGES; ++edge_index){
+		    y = A.vertex(x, edge_index);
+			if ( dist[y] > dist[x] + A(x, edge_index) ){
+				dist[y] = dist[x] +  A(x, edge_index);
 				queue.push(y);
 			}
+		}
 	}
 	verify_dijkstra(A, N);
 }
 
 void verify_dijkstra(Graph& A, const int N){
-	for (int i = 0; i < N; ++i)
-		for (int j = 0; j < N; ++j)
-			if (A(i, j) < LONG_MAX)
-				assert(dist[i] + A(i, j) >= dist[j] );
+	for (int x = 0; x < N; ++x){
+	    const int NUM_EDGES = A.num_edges(x);
+		for (int edge_index = 0; edge_index < NUM_EDGES; ++edge_index) {
+		    int y = A.vertex(x, edge_index);
+		    assert(dist[x] + A(x, edge_index) >= dist[y]);
+		}
+	}
 }
 
 void dijkstra_init(int SOURCE, const int N){
@@ -75,7 +81,7 @@ void dijkstra_init(int SOURCE, const int N){
 }
 
 void dijkstra_print(const int N){
-    for (int i = 0; i < N; ++i) {
+    for (int i = 1; i < N; ++i) {
         std::cout << i << " " << dist[i] << std::endl;
     }
 }
