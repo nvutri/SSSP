@@ -26,7 +26,7 @@ class CompareNode {
  * Process Dijkstra algorithm.
  * Read the graph, initialize and run dijkstra algorithm
  */
-void dijkstra(Graph& A, const int SOURCE) {
+void Dijkstra(Graph& A, const int SOURCE) {
 	// Priority Queue for dijkstra workload
 	std::priority_queue<int, std::vector<int>, CompareNode > queue;
 	int x, y, NUM_EDGES;

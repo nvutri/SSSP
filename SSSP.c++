@@ -45,7 +45,7 @@ int main() {
 	//Initialization
 	dist_init(SOURCE, NUM_NODES);
 
-	Bellmanford(A, SOURCE);
+	Bellmanford_parallel(A);
 
 	dist_verify(A, NUM_NODES);
 	dist_print(NUM_NODES);
