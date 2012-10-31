@@ -2,7 +2,7 @@
 #define _FORD_H
 
 #include <pthread.h>
-#define NUM_THREADS 100
+#define NUM_THREADS 2
 /*
  * procedure BellmanFord(list vertices, list edges, vertex source)
  */
@@ -42,19 +42,16 @@ void *node_relax(void *parm) {
     double cost;
 
     int u = p->node;
-
+    int threadid = p->thread_id;
+//    std::cout << threadid << ": Relaxing node " << u << std::endl;
     Graph& A = *(p->A);
     num_edge = A.num_edges(u);
-//    std::cout << threadid << ": Relaxing node " << u << std::endl;
     for (int e = 0; e < num_edge; ++e) {
         v = A.vertex(u, e);
         cost = dist[u] + A(u, e);
         if (cost < dist[v]) {
             dist[v] = cost;
         }
-    }
-    for (int i = 1; i < A.num_nodes(); ++i) {
-        std::cout << i << " " << dist[i] << std::endl;
     }
     pthread_exit(NULL);
     return NULL;
@@ -66,28 +63,29 @@ void *node_relax(void *parm) {
 void Bellmanford_parallel(Graph& A) {
     pthread_t threads[NUM_THREADS];
 
-    int rc, t;
+    int rc, t = 0;
     const int N = A.num_nodes();
-    thread_parm_t *parm = new thread_parm_t;
-    parm->A = &A;
     for (int x = 0; x < N; ++x) {
         for (int u = 0; u < N; ++u) {
-            t = u;  //(x * N + u) % NUM_THREADS;
-            std::cout << "Creating thread " << t << std::endl;
+            t = u % NUM_THREADS;
+            thread_parm_t *parm = new thread_parm_t;
+            parm->A = &A;
             parm->node = u;
             parm->thread_id = t;
-
             rc = pthread_create(&threads[t], NULL, node_relax, (void *) parm);
+//            pthread_join(threads[t], NULL);
             if (rc) {
-                std::cout << "ERROR; return code from pthread_create() is %d\n";
+                std::cout << "ERROR; return code from pthread_create() is " << t
+                          << std::endl;
                 exit(-1);
             }
+//            delete(parm);
+        }
+        for (int t = 0; t < NUM_THREADS; ++t) {
+            pthread_join(threads[t], NULL);
         }
     }
 
-    for (int t = 0; t < NUM_THREADS; ++t) {
-        pthread_join(threads[t], NULL);
-    }
-    pthread_exit(NULL);
+//    pthread_exit(NULL);
 }
 #endif
