@@ -2,7 +2,7 @@
 #define _FORD_H
 
 #include <pthread.h>
-#define NUM_THREADS 2
+#define NUM_THREADS 4
 /*
  * procedure BellmanFord(list vertices, list edges, vertex source)
  */
@@ -32,6 +32,8 @@ typedef struct {
     int node;
     int thread_id;
 } thread_parm_t;
+typedef thread_parm_t* p_thread_parm_t;
+
 /**
  * Relax all edges surrounding node u
  * @param u: source node to relax around
@@ -42,8 +44,8 @@ void *node_relax(void *parm) {
     double cost;
 
     int u = p->node;
-    int threadid = p->thread_id;
-//    std::cout << threadid << ": Relaxing node " << u << std::endl;
+//    int threadid = p->thread_id;
+//    std::cerr << threadid << ": Relaxing node " << u << std::endl;
     Graph& A = *(p->A);
     num_edge = A.num_edges(u);
     for (int e = 0; e < num_edge; ++e) {
@@ -59,33 +61,56 @@ void *node_relax(void *parm) {
 
 /**
  * Parallel Ford Bellman
+ * @A: the graph
  */
 void Bellmanford_parallel(Graph& A) {
     pthread_t threads[NUM_THREADS];
+    p_thread_parm_t parm[NUM_THREADS];
+    int rc;
 
-    int rc, t = 0;
+    /**
+     * Allocate memory for passing parameters to the threads
+     */
+    for (int t = 0; t < NUM_THREADS; ++t) {
+        parm[t] = new thread_parm_t;
+    }
+
     const int N = A.num_nodes();
+
+    /**
+     * Running the Program in multiple Threads.
+     * The Inner Loop is Unrolled to NUM_THREADS to parallel
+     */
     for (int x = 0; x < N; ++x) {
-        for (int u = 0; u < N; ++u) {
-            t = u % NUM_THREADS;
-            thread_parm_t *parm = new thread_parm_t;
-            parm->A = &A;
-            parm->node = u;
-            parm->thread_id = t;
-            rc = pthread_create(&threads[t], NULL, node_relax, (void *) parm);
-//            pthread_join(threads[t], NULL);
-            if (rc) {
-                std::cout << "ERROR; return code from pthread_create() is " << t
-                          << std::endl;
-                exit(-1);
+        for (int u = 0; u < N; u += NUM_THREADS) {
+            int y = u;
+            for (int thread_id = 0; (thread_id < NUM_THREADS && y < N);
+                    ++thread_id, ++y) {
+
+                //Assigning Data to the thread
+                parm[thread_id]->A = &A;
+                parm[thread_id]->node = y;
+                parm[thread_id]->thread_id = thread_id;
+
+                rc = pthread_create(&threads[thread_id], NULL, node_relax,
+                                    (void *) parm[thread_id]);
+
+                if (rc) {
+                    std::cout << "ERROR; return code from pthread_create() is "
+                              << thread_id << std::endl;
+                }
             }
-//            delete(parm);
-        }
-        for (int t = 0; t < NUM_THREADS; ++t) {
-            pthread_join(threads[t], NULL);
+
+            //Join the running threads, so that a running thread will not be called on
+            for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id) {
+                pthread_join(threads[thread_id], NULL);
+            }
         }
     }
 
-//    pthread_exit(NULL);
+    //Clean up
+    for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id) {
+        delete(parm[thread_id]);
+    }
 }
 #endif
