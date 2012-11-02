@@ -1,18 +1,23 @@
-rm -f SSSP.app graph.out
+rm -f SSSP.app
 g++ -lpthread -Wall SSSP.c++ -o SSSP.app
 
-NUM_TEST=1
+FOLDER=./tests/SIZE_8
+OUTPUT=./graph.out
+NUM_TEST=14
+echo "TEST SUITE: $FOLDER"
 
-for ((test=1; test<=NUM_TEST ; test+=1)); do
-	./SSSP.app < ./tests/$test.in 2>&1 | tee -a graph.out 
-	#>graph.out 
+for ((test=0; test<=NUM_TEST ; test+=1)); do
+
+	res1=$(date +%s.%N)
 	
+	./SSSP.app < $FOLDER/$test.in >& $OUTPUT 
+	
+	res2=$(date +%s.%N)
 	 
-	if diff graph.out ./tests/$test.out >/dev/null ; then
-	  echo "PASS $test"
+	if diff $OUTPUT $FOLDER/$test.out >/dev/null ; then
+	  echo "PASS $test --- $(echo "$res2 - $res1"|bc ) sec"
 	else
-	  echo "FAIL $test"
+	  echo "FAIL $test --- $(echo "$res2 - $res1"|bc ) sec"
 	fi
-	
-	rm graph.out
+	rm -f $OUTPUT
 done
