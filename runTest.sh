@@ -1,16 +1,18 @@
 rm -f SSSP.app
-g++ -lpthread -Wall SSSP.c++ -o SSSP.app
+g++ -ansi -pedantic -lcppunit -ldl -lpthread -Wall SSSP.c++ -o SSSP.app
 
-FOLDER=./tests/SIZE_8
+FOLDER=./tests/SIZE_10
 OUTPUT=./graph.out
-NUM_TEST=14
+NUM_TEST=100
 echo "TEST SUITE: $FOLDER"
 
 for ((test=0; test<=NUM_TEST ; test+=1)); do
 
 	res1=$(date +%s.%N)
 	
-	./SSSP.app < $FOLDER/$test.in >& $OUTPUT 
+	#SSSP.app [Algorithm] [Number of Thread]
+	
+	./SSSP.app BFPL 16 < $FOLDER/$test.in > $OUTPUT 
 	
 	res2=$(date +%s.%N)
 	 
