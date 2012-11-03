@@ -6,6 +6,9 @@
 // includes
 // --------
 #include <iostream>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 #include "Graph.h"
 #include "Dijkstra.h"
@@ -33,17 +36,33 @@ void dist_print(const int N);
 // main
 // ----
 
-int main() {
+int main(int argc, char** argv) {
     int NUM_NODES, NUM_EDGES;
     read_graph_dimension(NUM_NODES, NUM_EDGES);
     Graph A(NUM_NODES, NUM_EDGES);
     read_graph(A);
 
-    int SOURCE = 1;
+    if (argc != 3){
+        std::cerr << "Wrong Number of Inputs" << std::endl;
+        std::cerr << "USAGE: SSSP.app [Algorithm] [Number of threads]" << std::endl;
+        exit(-1);
+    }
+
+    const int SOURCE = 1;
+    const char* ALGORITHM = argv[1];
+    const int NUM_THREADS = atoi(argv[2]);
+
     //Initialization
     dist_init(SOURCE, NUM_NODES);
 
-    Bellmanford_parallel(A);
+//    fprintf(stderr, "%s\n%d\n", ALGORITHM, NUM_THREADS);
+
+    if ( strcmp(ALGORITHM, "DIJK") == 0)
+        Dijkstra(A, SOURCE);
+    if ( strcmp(ALGORITHM, "BF") == 0)
+        Bellmanford(A, SOURCE);
+    if ( strcmp(ALGORITHM, "BFPL") == 0)
+        Bellmanford_parallel(A, SOURCE, NUM_THREADS);
 
     dist_verify(A, NUM_NODES);
     dist_print(NUM_NODES);
@@ -132,9 +151,13 @@ void dist_verify(Graph& A, const int N) {
 }
 
 void dist_print(const int N) {
-    for (int i = 1; i < N; ++i)
+    for (int i = 1; i < N; ++i){
+        std::cout << i;
         if (dist[i] != LONG_MAX) {
-            std::cout << i << " " << dist[i] << std::endl;
+             std::cout << " " << dist[i] << std::endl;
         }
+        else
+            std::cout << " " << "INF" << std::endl;
+    }
 }
 

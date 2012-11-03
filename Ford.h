@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define NUM_THREADS 16
+#define MAX_THREADS 16
 
 //Global Container distance
 extern std::vector<double> dist;
@@ -72,7 +72,7 @@ void *node_relax(void *parm) {
 /**
  * Find a free thread
  */
-int find_thread(p_thread_parm_t* parm){
+int find_thread(p_thread_parm_t* parm, const int NUM_THREADS){
     //Searching for a free thread
 
     int thread_id = rand() % NUM_THREADS;
@@ -85,9 +85,11 @@ int find_thread(p_thread_parm_t* parm){
  * Parallel Ford Bellman
  * @A: the graph
  */
-void Bellmanford_parallel(Graph& A) {
-    pthread_t threads[NUM_THREADS];
-    p_thread_parm_t parm[NUM_THREADS];
+void Bellmanford_parallel(Graph& A, const int SOURCE, const int NUM_THREADS) {
+
+    assert(NUM_THREADS <= MAX_THREADS);
+    pthread_t threads[MAX_THREADS];
+    p_thread_parm_t parm[MAX_THREADS];
 
     srand ( time(NULL) );
     /**
@@ -111,7 +113,7 @@ void Bellmanford_parallel(Graph& A) {
     int rc;
 
     for (int x = 0; x < N; ++x) {
-        thread_id = find_thread(parm);
+        thread_id = find_thread(parm, NUM_THREADS);
         assert(!parm[thread_id]->busy);
 
         //Assigning Data to the thread.
