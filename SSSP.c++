@@ -132,8 +132,9 @@ void dist_verify(Graph& A, const int N) {
 }
 
 void dist_print(const int N) {
-    for (int i = 1; i < N; ++i) {
-        std::cout << i << " " << dist[i] << std::endl;
-    }
+    for (int i = 1; i < N; ++i)
+        if (dist[i] != LONG_MAX) {
+            std::cout << i << " " << dist[i] << std::endl;
+        }
 }
 
