@@ -68,6 +68,17 @@ void *node_relax(void *parm) {
 }
 
 /**
+ * Find a free thread
+ */
+int find_thread(p_thread_parm_t* parm){
+    //Searching for a free thread
+    int thread_id = 0;
+    while (parm[thread_id]->busy){
+        thread_id = (thread_id + 1) % NUM_THREADS;
+    }
+    return thread_id;
+}
+/**
  * Parallel Ford Bellman
  * @A: the graph
  */
@@ -96,12 +107,7 @@ void Bellmanford_parallel(Graph& A) {
     int rc;
 
     for (int x = 0; x < N; ++x) {
-
-        //Searching for a free thread
-        while (parm[thread_id]->busy) {
-            thread_id = (thread_id + 1) % NUM_THREADS;
-            assert(thread_id < NUM_THREADS && thread_id >= 0);
-        }
+        thread_id = find_thread(parm);
         assert(!parm[thread_id]->busy);
 
         //Assigning Data to the thread.
