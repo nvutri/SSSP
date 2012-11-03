@@ -19,6 +19,11 @@ typedef struct {
 } thread_parm_t;
 typedef thread_parm_t* p_thread_parm_t;
 
+/**
+ * Locking for BF parrallel
+ */
+pthread_mutex_t dist_lock;
+
 /*
  * procedure BellmanFord(list vertices, list edges, vertex source)
  */
@@ -33,10 +38,13 @@ void Bellmanford(Graph& A, const int SOURCE) {
             num_edge = A.num_edges(u);
             for (int e = 0; e < num_edge; ++e) {
                 v = A.vertex(u, e);
+                //Crictical computation and decision
+                pthread_mutex_lock(&dist_lock);
                 cost = dist[u] + A(u, e);
                 if (cost < dist[v]) {
                     dist[v] = cost;
                 }
+                pthread_mutex_unlock(&dist_lock);
             }
         }
     }
@@ -90,6 +98,10 @@ void Bellmanford_parallel(Graph& A, const int SOURCE, const int NUM_THREADS) {
     assert(NUM_THREADS <= MAX_THREADS);
     pthread_t threads[MAX_THREADS];
     p_thread_parm_t parm[MAX_THREADS];
+
+    //Init Locking
+    pthread_mutex_init(&dist_lock, NULL);
+
 
     srand ( time(NULL) );
     /**
