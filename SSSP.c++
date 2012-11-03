@@ -13,6 +13,7 @@
 #include "Graph.h"
 #include "Dijkstra.h"
 #include "Ford.h"
+#include "Ford_Parallel.h"
 
 using namespace std;
 
