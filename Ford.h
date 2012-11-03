@@ -3,6 +3,8 @@
 
 #include <pthread.h>
 #include <vector>
+#include <stdlib.h>
+#include <time.h>
 
 #define NUM_THREADS 16
 
@@ -72,9 +74,10 @@ void *node_relax(void *parm) {
  */
 int find_thread(p_thread_parm_t* parm){
     //Searching for a free thread
-    int thread_id = 0;
+
+    int thread_id = rand() % NUM_THREADS;
     while (parm[thread_id]->busy){
-        thread_id = (thread_id + 1) % NUM_THREADS;
+        thread_id = rand() % NUM_THREADS;
     }
     return thread_id;
 }
@@ -86,6 +89,7 @@ void Bellmanford_parallel(Graph& A) {
     pthread_t threads[NUM_THREADS];
     p_thread_parm_t parm[NUM_THREADS];
 
+    srand ( time(NULL) );
     /**
      * Allocate memory for passing parameters to the threads
      * Free and initialize them
@@ -119,8 +123,9 @@ void Bellmanford_parallel(Graph& A) {
         rc = pthread_create(&threads[thread_id], NULL, node_relax,
                             (void *) parm[thread_id]);
         if (rc) {
-            std::cout << "ERROR; return code from pthread_create() is "
-                      << thread_id << std::endl;
+//            std::cerr << "ERROR; return code from pthread_create() is "
+//                      << thread_id << std::endl;
+            parm[thread_id]->busy = false;
         }
 
     }
