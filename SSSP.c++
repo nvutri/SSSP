@@ -14,6 +14,7 @@
 #include "Dijkstra.h"
 #include "Ford.h"
 #include "Ford_Parallel.h"
+#include "Round_Based.h"
 
 using namespace std;
 
@@ -64,6 +65,8 @@ int main(int argc, char** argv) {
         Bellmanford(A, SOURCE);
     if ( strcmp(ALGORITHM, "BFPL") == 0)
         Bellmanford_parallel(A, SOURCE, NUM_THREADS);
+    if ( strcmp(ALGORITHM, "RB") == 0)
+        Round_Based(A, SOURCE, NUM_THREADS);
 
     dist_verify(A, NUM_NODES);
     dist_print(NUM_NODES);
