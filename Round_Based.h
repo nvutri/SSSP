@@ -8,15 +8,13 @@
 #include <cassert>
 #include <algorithm>
 
-
-
 #include "Thread_Handler.h"
 
 #define MAX_THREADS 16
 
 //Global Container distance
 extern std::vector<double> dist;
-std::deque<int> work(1000);
+std::deque<int> work;
 
 /**
  * Locking for BF parrallel
@@ -35,11 +33,8 @@ void *rb_node_relax(void *parm) {
     const int LEFT = p->left;
     const int RIGHT = p->right;
 
-    std::cerr << LEFT << " " << RIGHT << " "
-              << p->thread_id << std::endl;
     for (int i = LEFT; i < RIGHT; ++i) {
         int u = work[i];
-
         num_edge = A.num_edges(u);
         for (int e = 0; e < num_edge; ++e) {
             v = A.vertex(u, e);
@@ -47,11 +42,13 @@ void *rb_node_relax(void *parm) {
             pthread_mutex_lock(&rb_dist_lock);
             cost = dist[u] + A(u, e);
             if (cost < dist[v]) {
-//                std::cerr << "relaxing " << v;
+
                 work.push_back(v);
                 dist[v] = cost;
+
             }
             pthread_mutex_unlock(&rb_dist_lock);
+
         }
     }
 
@@ -59,31 +56,28 @@ void *rb_node_relax(void *parm) {
     return NULL;
 }
 
-
-void assign_jobs(p_thread_parm_t* parm, pthread_t* threads, int N, int NUM_THREADS){
+void assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
+    pthread_t threads[MAX_THREADS];
 
     //Determine the workload on each thread
     int RANGE;
-    //Check if nodes can be divided up evenly
     if ((N % NUM_THREADS) == 0)
         RANGE = N / NUM_THREADS;
     else
         RANGE = N / (NUM_THREADS - 1);
 
-    int rc;
-    int left, right;
-    left = 0;
-    right = RANGE;
     /**
      * Running the Program in multiple Threads.
      */
+    int rc = 0;
+    int right;
 
-    //TODO: Divide the work loads to threads evenly based on work.size()
-    for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id) {
+    for (int thread_id = 0, left = 0; thread_id < NUM_THREADS; ++thread_id) {
         right = left + RANGE;
-        if ( thread_id == NUM_THREADS - 1)
+        if (thread_id == NUM_THREADS - 1)
             right = N;
 
+        parm[thread_id]->A = &A;
         parm[thread_id]->left = left;
         parm[thread_id]->right = right;
         parm[thread_id]->thread_id = thread_id;
@@ -93,29 +87,36 @@ void assign_jobs(p_thread_parm_t* parm, pthread_t* threads, int N, int NUM_THREA
         if (rc) {
             std::cerr << "ERROR; return code from pthread_create() is "
                       << thread_id << std::endl;
+
+            delete_threads_data(parm, NUM_THREADS);
             exit(-1);
         }
-
         left += RANGE;
     }
+
+    /**
+     * Wait for all threads to finish
+     */
+    join_threads(threads, NUM_THREADS);
 }
 /**
- * Parallel Ford Bellman
+ * Parallel Ford Bellman Round Based
  * @A: the graph
  */
 void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
+
+    //Resize work to fit
     const int NUM_NODE = A.num_nodes();
-//    work = std::deque<int>(2*NUM_NODE);
+    work.resize(2 * NUM_NODE, 0);
 
     assert(NUM_THREADS <= MAX_THREADS);
     p_thread_parm_t parm[MAX_THREADS];
-    pthread_t threads[MAX_THREADS];
 
     //Init Locking
     pthread_mutex_init(&rb_dist_lock, NULL);
 
     //Init param for threads
-    init_threads(parm, MAX_THREADS, A);
+    create_threads_data(parm, NUM_THREADS);
 
     //Start out with 1 node;
     work.clear();
@@ -124,18 +125,24 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
     while (!work.empty()) {
         const int N = work.size();
         //Determine the number of needed threads
-        assign_jobs(parm, threads, N, std::min(N, NUM_THREADS));
+        const int USING_THREADS = std::min(N, NUM_THREADS);
+        assign_jobs(parm, A, N, USING_THREADS);
 
-        join_threads(threads, NUM_THREADS);
-        //Wait for all threads to finish
         //Clear out the old items deque
-        for (int i = 0; i < N; ++i)
-            work.pop_front();
+        work.erase(work.begin(), work.begin() + N);
     }
 
     //Clean up data passed to threads
-    for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id)
-        delete (parm[thread_id]);
+    delete_threads_data(parm, NUM_THREADS);
 }
 
+/**
+ * Dump out the work load
+ */
+void print_work() {
+    for (unsigned int i = 0; i < work.size(); ++i) {
+        std::cerr << work[i] << " ";
+    }
+    std::cerr << std::endl;
+}
 #endif
