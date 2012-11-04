@@ -1,4 +1,5 @@
 #include <vector>
+#include <list>
 #include <limits.h>
 #include <cassert>
 #include <algorithm>
@@ -8,11 +9,17 @@
 
 const int DEFAULT_SIZE = 100;
 
+struct Node{
+    long _vertex;
+    double _weight;
+    Node(int vertex, double weight):
+        _vertex(vertex), _weight(weight){
+
+    }
+};
 class Graph {
   private:
-    std::vector<double> _val;
-    std::vector<int> _col_ind;
-    std::vector<int> _row_ptr;
+    std::vector < std::list<Node> > _m;
     const int _NUM_NODES;
     const int _NUM_EDGES;
 
@@ -23,7 +30,7 @@ class Graph {
     void insert(int x, int y, double weight);
     int num_edges(int x);
     int vertex(int x, int index);
-    double &operator()(int x, int y);
+    std::list<Node>& operator [] (int x);
     void print();
 };
 
@@ -32,14 +39,9 @@ class Graph {
  * Require number of nodes, and number of edges
  */
 Graph::Graph(int NUM_NODES, int NUM_EDGES)
-        : _val(NUM_EDGES, 0),
-          _col_ind(NUM_EDGES, 0),
-          // it needs an extra +1 to know where to stop
-          _row_ptr(NUM_NODES + 1, 0),
-
+        : _m(NUM_NODES),
           _NUM_NODES(NUM_NODES),
           _NUM_EDGES(NUM_EDGES) {
-    _row_ptr[1] = 1;
 }
 
 /**
@@ -49,18 +51,11 @@ int Graph::num_nodes() const{
     return _NUM_NODES;
 }
 /**
- * Insert an edge to the CPR Graph
+ * Insert an edge
  */
 void Graph::insert(int x, int y, double weight) {
-    //First time insertion on a node
-    if (_row_ptr[x + 1] == 0) {
-        _row_ptr[x + 1] = _row_ptr[x];
-    }
-
-    int index = _row_ptr[x + 1];
-    _row_ptr[x + 1]++;
-    _col_ind[index] = y;
-    _val[index] = weight;
+    Node node(y, weight);
+    _m[x].push_back( node );
 }
 
 /**
@@ -68,48 +63,22 @@ void Graph::insert(int x, int y, double weight) {
  * @param: u node
  * @param: index index of the arc on node u
  */
-double& Graph::operator () (int x, int index){
-    int begin, end;
-    begin = _row_ptr[ x ];
-    end  = _row_ptr[ x + 1 ];
-    assert (begin + index < end);
-    return _val[ begin + index];
-}
-
-/**
- * @return number of edges of node x
- */
-int Graph::num_edges(int x){
-    int num = std::max(_row_ptr[x + 1] - _row_ptr[ x ], 0);
-    return num;
-}
-
-/**
- * @return: the vertex of node x, arc index
- */
-int Graph::vertex(int x, int index){
-    int begin, end;
-    begin = _row_ptr[ x ];
-    end  = _row_ptr[ x + 1 ];
-    assert (begin + index < end);
-    return _col_ind[ begin + index];
+std::list<Node>& Graph::operator [] (int x){
+    return _m[ x ];
 }
 
 /**
  * Print matrix containers
  */
 void Graph::print() {
-    for (unsigned int i = 1; i < _val.size(); ++i) {
-        std::cout << _val[i] << " ";
+    for (unsigned int i = 0; i < _m.size(); ++i) {
+        std::list<Node> x = _m[i];
+        std::list<Node>::const_iterator iterator;
+        for (iterator = x.begin(); iterator != x.end(); ++iterator) {
+            Node node = *iterator;
+            std::cout << i << " " << node._vertex << " " << node._weight << std::endl;
+        }
+
     }
-    std::cout << std::endl;
-    for (unsigned int i = 1; i < _col_ind.size(); ++i) {
-        std::cout << _col_ind[i] << " ";
-    }
-    std::cout << std::endl;
-    for (unsigned int i = 1; i < _row_ptr.size(); ++i) {
-        std::cout << _row_ptr[i] << " ";
-    }
-    std::cout << std::endl;
 }
 #endif
