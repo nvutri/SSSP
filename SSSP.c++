@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
         Round_Based(A, SOURCE, NUM_THREADS);
 
     dist_verify(A, NUM_NODES);
-//    dist_print(NUM_NODES);
+    dist_print(NUM_NODES);
 
     return 0;
 }

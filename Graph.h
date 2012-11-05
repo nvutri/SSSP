@@ -10,9 +10,17 @@
 struct Node{
     long _vertex;
     double _weight;
+    double _dist;
+    Node(int vertex, double weight, double dist):
+        _vertex(vertex), _weight(weight), _dist(dist){
+    }
     Node(int vertex, double weight):
         _vertex(vertex), _weight(weight){
+    }
 
+    bool operator()(Node n1, Node n2) // Returns true if t1 is earlier than t2
+    {
+       return n1._dist < n2._dist;
     }
 };
 class Graph {
