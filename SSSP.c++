@@ -40,6 +40,10 @@ void dist_print(const int N);
 
 int main(int argc, char** argv) {
     int NUM_NODES, NUM_EDGES;
+
+    /**
+     * Reading Graph Data
+     */
     read_graph_dimension(NUM_NODES, NUM_EDGES);
     Graph A(NUM_NODES, NUM_EDGES);
     read_graph(A);
@@ -70,7 +74,6 @@ int main(int argc, char** argv) {
 
     dist_verify(A, NUM_NODES);
     dist_print(NUM_NODES);
-
     return 0;
 }
 
@@ -98,7 +101,6 @@ void read_graph_dimension(int& NUM_NODES, int& NUM_EDGES) {
     // Graph starts from Node 1
     NUM_NODES++;
     NUM_EDGES++;
-
 }
 /**
  * Read the input files.
@@ -109,31 +111,16 @@ void read_graph(Graph& A) {
     char line[256];
     int x, y;
     double weight;
-    const int N = A.num_nodes() + 1;
-    //Temporary Matrix Storage
-    vector<vector<double> > B(N);
-    for (int i = 0; i < N; ++i) {
-        B[i] = vector<double>(N, LONG_MAX);
-    }
 
     while (cin >> line_type) {
         if (line_type == 'c') {
             cin.getline(line, 256, '\n');
         } else if (line_type == 'a') {
             cin >> x >> y >> weight;
-            B[x][y] = weight;
-
+            A.insert(x, y, weight);
         } else
             break;
     }
-
-    for (int i = 1; i < N; ++i)
-        for (int j = 1; j < N; ++j)
-            if (B[i][j] != LONG_MAX) {
-//                cout << i << " " << j << " " << B[i][j] << endl;
-                A.insert(i, j, B[i][j]);
-            }
-//	A.print();
 }
 
 void dist_init(int SOURCE, const int N) {
@@ -146,10 +133,13 @@ void dist_init(int SOURCE, const int N) {
 
 void dist_verify(Graph& A, const int N) {
     for (int x = 0; x < N; ++x) {
-        const int NUM_EDGES = A.num_edges(x);
-        for (int edge_index = 0; edge_index < NUM_EDGES; ++edge_index) {
-            int y = A.vertex(x, edge_index);
-            assert(dist[x] + A(x, edge_index) >= dist[y]);
+        std::list<Node> edges = A[x];
+        std::list<Node>::iterator iterator;
+        for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
+            Node node = *iterator;
+            int y = node._vertex;
+            double weight = node._weight;
+            assert(dist[x] + weight >= dist[y]);
         }
     }
 }

@@ -4,26 +4,25 @@
 //Global Container distance
 extern std::vector<double> dist;
 
-
 /*
  * procedure BellmanFord(list vertices, list edges, vertex source)
  */
 
 void Bellmanford(Graph& A, const int SOURCE) {
     const int N = A.num_nodes();
-    int num_edge, v;
     double cost;
 
-    for (int x = 0; x < N; ++x) {
-        for (int u = 0; u < N; ++u) {
-            num_edge = A.num_edges(u);
-            for (int e = 0; e < num_edge; ++e) {
-                v = A.vertex(u, e);
-                cost = dist[u] + A(u, e);
-                if (cost < dist[v]) {
-                    dist[v] = cost;
+    for (int i = 0; i < N; ++i) {
+        for (int x = 0; x < N; ++x) {
+            std::list<Node> edges = A[x];
+            std::list<Node>::const_iterator iterator;
+            for (iterator = edges.begin(); iterator != edges.end(); ++iterator) {
+                Node node = *iterator;
+                int y = node._vertex;
+                cost = dist[x] + node._weight;
+                if (cost < dist[y]) {
+                    dist[y] = cost;
                 }
-
             }
         }
     }

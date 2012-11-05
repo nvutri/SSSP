@@ -7,8 +7,6 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
 
-const int DEFAULT_SIZE = 100;
-
 struct Node{
     long _vertex;
     double _weight;
@@ -39,7 +37,7 @@ class Graph {
  * Require number of nodes, and number of edges
  */
 Graph::Graph(int NUM_NODES, int NUM_EDGES)
-        : _m(NUM_NODES),
+        : _m(NUM_NODES+1),
           _NUM_NODES(NUM_NODES),
           _NUM_EDGES(NUM_EDGES) {
 }
@@ -55,13 +53,12 @@ int Graph::num_nodes() const{
  */
 void Graph::insert(int x, int y, double weight) {
     Node node(y, weight);
-    _m[x].push_back( node );
+    _m[x].push_back(node );
 }
 
 /**
- * @return: the edge from node,
- * @param: u node
- * @param: index index of the arc on node u
+ * @return: the edges from node,
+ * @param: x node
  */
 std::list<Node>& Graph::operator [] (int x){
     return _m[ x ];
@@ -73,12 +70,11 @@ std::list<Node>& Graph::operator [] (int x){
 void Graph::print() {
     for (unsigned int i = 0; i < _m.size(); ++i) {
         std::list<Node> x = _m[i];
-        std::list<Node>::const_iterator iterator;
+        std::list<Node>::iterator iterator;
         for (iterator = x.begin(); iterator != x.end(); ++iterator) {
             Node node = *iterator;
             std::cout << i << " " << node._vertex << " " << node._weight << std::endl;
         }
-
     }
 }
 #endif

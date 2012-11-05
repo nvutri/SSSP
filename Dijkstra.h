@@ -29,18 +29,20 @@ class CompareNode {
 void Dijkstra(Graph& A, const int SOURCE) {
 	// Priority Queue for dijkstra workload
 	std::priority_queue<int, std::vector<int>, CompareNode > queue;
-	int x, y, NUM_EDGES;
+	int x, y;
 
 	queue.push(SOURCE);
 
 	while (!queue.empty()){
 		x = queue.top();
 		queue.pop();
-		NUM_EDGES = A.num_edges(x);
-		for (int edge_index = 0; edge_index < NUM_EDGES; ++edge_index){
-		    y = A.vertex(x, edge_index);
-			if ( dist[y] > dist[x] + A(x, edge_index) ){
-				dist[y] = dist[x] +  A(x, edge_index);
+        std::list<Node>& edges = A[x];
+        std::list<Node>::iterator iterator;
+        for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
+            Node node = *iterator;
+		    y = node._vertex;
+			if ( dist[y] > dist[x] + node._weight ){
+				dist[y] = dist[x] +  node._weight;
 				queue.push(y);
 			}
 		}

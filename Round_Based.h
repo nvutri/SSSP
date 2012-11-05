@@ -27,7 +27,7 @@ pthread_mutex_t rb_dist_lock;
  */
 void *rb_node_relax(void *parm) {
     p_thread_parm_t p = (p_thread_parm_t) parm;
-    int num_edge, v;
+    int v;
     double cost;
     Graph& A = *(p->A);
     const int LEFT = p->left;
@@ -35,12 +35,14 @@ void *rb_node_relax(void *parm) {
 
     for (int i = LEFT; i < RIGHT; ++i) {
         int u = work[i];
-        num_edge = A.num_edges(u);
-        for (int e = 0; e < num_edge; ++e) {
-            v = A.vertex(u, e);
+        std::list<Node>& edges = A[u];
+        std::list<Node>::iterator iterator;
+        for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
+            Node node = *iterator;
+            v = node._vertex;
             //Crictical computation and decision
             pthread_mutex_lock(&rb_dist_lock);
-            cost = dist[u] + A(u, e);
+            cost = dist[u] + node._weight;
             if (cost < dist[v]) {
 
                 work.push_back(v);
