@@ -12,12 +12,23 @@
 extern std::vector<double> dist;
 
 /**
+ * Class to compare 2 nodes for the priority queue
+ */
+class CompareNode {
+    public:
+    bool operator()(int n1, int n2) // Returns true if t1 is earlier than t2
+    {
+       return dist[n1] > dist[n2];
+    }
+};
+
+/**
  * Process Dijkstra algorithm.
  * Read the graph, initialize and run dijkstra algorithm
  */
 void Dijkstra(Graph& A, const int SOURCE) {
 	// Priority Queue for dijkstra workload
-	std::priority_queue<int, std::vector<int>, std::less<int> > queue;
+	std::priority_queue<int, std::vector<int>, CompareNode > queue;
 	int x, y;
 	queue.empty();
 	queue.push(SOURCE);
