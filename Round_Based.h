@@ -12,9 +12,10 @@
 
 #define MAX_THREADS 16
 
+using namespace std;
 //Global Container distance
-extern std::vector<double> dist;
-std::deque<int> work;
+extern vector<double> dist;
+vector<int> work;
 
 /**
  * Locking for BF parrallel
@@ -35,8 +36,8 @@ void *rb_node_relax(void *parm) {
 
     for (int i = LEFT; i < RIGHT; ++i) {
         int u = work[i];
-        std::list<Node>& edges = A[u];
-        std::list<Node>::iterator iterator;
+        list<Node>& edges = A[u];
+        list<Node>::iterator iterator;
         for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
             Node node = *iterator;
             v = node._vertex;
@@ -60,6 +61,13 @@ void *rb_node_relax(void *parm) {
     return NULL;
 }
 
+/**
+ * Assign jobs to THREADS.
+ * @param parm: parameter data for each thread.
+ * @param A: the Graph.
+ * @param N: the size of work load. This will be divided up to all threads.
+ * @param NUM_THREADS: number of threads to be used.
+ */
 void assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
     pthread_t threads[MAX_THREADS];
 
@@ -89,8 +97,8 @@ void assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
         rc = pthread_create(&threads[thread_id], NULL, rb_node_relax,
                             (void *) parm[thread_id]);
         if (rc) {
-            std::cerr << "ERROR; return code from pthread_create() is "
-                      << thread_id << std::endl;
+            cerr << "ERROR; return code from pthread_create() is "
+                      << thread_id << endl;
 
             delete_threads_data(parm, NUM_THREADS);
             exit(-1);
@@ -103,15 +111,16 @@ void assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
      */
     join_threads(threads, NUM_THREADS);
 }
+
 /**
  * Parallel Ford Bellman Round Based
  * @A: the graph
  */
 void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
 
-    //Resize work to fit
+    //Resize work to fit. Maximumly need size of 2* NUM_NODE
     const int NUM_NODE = A.num_nodes();
-    work.resize(2 * NUM_NODE, 0);
+    work.resize(min(2 * NUM_NODE, A.num_edges()), 0);
 
     assert(NUM_THREADS <= MAX_THREADS);
     p_thread_parm_t parm[MAX_THREADS];
@@ -129,7 +138,7 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
     while (!work.empty()) {
         const int N = work.size();
         //Determine the number of needed threads
-        const int USING_THREADS = std::min(N, NUM_THREADS);
+        const int USING_THREADS = min(N, NUM_THREADS);
         assign_jobs(parm, A, N, USING_THREADS);
 
         //Clear out the old items deque
@@ -148,8 +157,8 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
  */
 void print_work() {
     for (unsigned int i = 0; i < work.size(); ++i) {
-        std::cerr << work[i] << " ";
+        cerr << work[i] << " ";
     }
-    std::cerr << std::endl;
+    cerr << endl;
 }
 #endif

@@ -31,10 +31,10 @@ class Graph {
 
   public:
     int num_nodes() const;
+    int num_edges() const;
     Graph(int NUM_NODES, int NUM_EDGES);
 
     void insert(int x, int y, double weight);
-    int num_edges(int x);
     int vertex(int x, int index);
     std::list<Node>& operator [] (int x);
     void print();
@@ -55,6 +55,12 @@ Graph::Graph(int NUM_NODES, int NUM_EDGES)
  */
 int Graph::num_nodes() const{
     return _NUM_NODES;
+}
+/**
+ * @return: total number of edges:
+ */
+int Graph::num_edges() const{
+    return _NUM_EDGES;
 }
 /**
  * Insert an edge
