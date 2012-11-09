@@ -10,18 +10,19 @@
 #include <cmath>
 
 #include "Thread_Handler.h"
+#include "SpinLock.h"
 
 #define MAX_THREADS 16
 
 using namespace std;
 //Global Container distance
 extern vector<double> dist;
-vector<int> work;
+static vector<int> work;
 
 /**
  * Locking for BF parrallel
  */
-pthread_spinlock_t rb_spin_lock;
+static SpinLock rb_spin_lock;
 
 /**
  * Relax all edges surrounding node u
@@ -44,7 +45,7 @@ void *rb_node_relax(void *parm) {
             v = node._vertex;
             //Crictical computation and decision
             //Acquire Spin Lock
-            pthread_spin_lock(&rb_spin_lock);
+            rb_spin_lock.acquire();
 
             cost = dist[u] + node._weight;
             if (cost < dist[v]) {
@@ -53,7 +54,7 @@ void *rb_node_relax(void *parm) {
                 dist[v] = cost;
             }
             //Release the Spin Lock
-            pthread_spin_unlock(&rb_spin_lock);
+            rb_spin_lock.unlock();
 
         }
     }
@@ -120,8 +121,8 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
     assert(NUM_THREADS <= MAX_THREADS);
     p_thread_parm_t parm[MAX_THREADS];
 
-    //Init Spin Locking to 0
-    pthread_spin_init(&rb_spin_lock, 0);
+    //Init Spin Locking
+    rb_spin_lock = SpinLock();
 
     //Init param for threads
     create_threads_data(parm, NUM_THREADS);
@@ -146,7 +147,7 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
     delete_threads_data(parm, NUM_THREADS);
 
     //Destroy lock
-    pthread_spin_destroy(&rb_spin_lock);
+//    pthread_spin_destroy(&rb_spin_lock);
 }
 
 /**

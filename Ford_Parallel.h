@@ -14,7 +14,7 @@
 
 //Global Container distance
 extern std::vector<double> dist;
-bool graph_changed;
+static bool graph_changed;
 
 /**
  * Locking for BF parrallel
