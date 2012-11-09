@@ -19,7 +19,7 @@ std::deque<int> work;
 /**
  * Locking for BF parrallel
  */
-pthread_mutex_t rb_dist_lock;
+pthread_spinlock_t rb_spin_lock;
 
 /**
  * Relax all edges surrounding node u
@@ -41,15 +41,17 @@ void *rb_node_relax(void *parm) {
             Node node = *iterator;
             v = node._vertex;
             //Crictical computation and decision
-            pthread_mutex_lock(&rb_dist_lock);
+            //Acquire Spin Lock
+            pthread_spin_lock(&rb_spin_lock);
+
             cost = dist[u] + node._weight;
             if (cost < dist[v]) {
-
+                //Push node v to the work list
                 work.push_back(v);
                 dist[v] = cost;
-
             }
-            pthread_mutex_unlock(&rb_dist_lock);
+            //Release the Spin Lock
+            pthread_spin_unlock(&rb_spin_lock);
 
         }
     }
@@ -114,8 +116,8 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
     assert(NUM_THREADS <= MAX_THREADS);
     p_thread_parm_t parm[MAX_THREADS];
 
-    //Init Locking
-    pthread_mutex_init(&rb_dist_lock, NULL);
+    //Init Spin Locking to 0
+    pthread_spin_init(&rb_spin_lock, 0);
 
     //Init param for threads
     create_threads_data(parm, NUM_THREADS);
@@ -136,6 +138,9 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
 
     //Clean up data passed to threads
     delete_threads_data(parm, NUM_THREADS);
+
+    //Destroy lock
+    pthread_spin_destroy(&rb_spin_lock);
 }
 
 /**
