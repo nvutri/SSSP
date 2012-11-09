@@ -7,6 +7,7 @@
 #include <time.h>
 #include <cassert>
 #include <algorithm>
+#include <cmath>
 
 #include "Thread_Handler.h"
 
@@ -72,11 +73,7 @@ void assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
     pthread_t threads[MAX_THREADS];
 
     //Determine the workload on each thread
-    int RANGE;
-    if ((N % NUM_THREADS) == 0)
-        RANGE = N / NUM_THREADS;
-    else
-        RANGE = N / (NUM_THREADS - 1);
+    int RANGE = ceil( (float)N / (float)NUM_THREADS );
 
     /**
      * Running the Program in multiple Threads.
@@ -85,9 +82,7 @@ void assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
     int right;
 
     for (int thread_id = 0, left = 0; thread_id < NUM_THREADS; ++thread_id) {
-        right = left + RANGE;
-        if (thread_id == NUM_THREADS - 1)
-            right = N;
+        right = min(left + RANGE, N);
 
         parm[thread_id]->A = &A;
         parm[thread_id]->left = left;
@@ -139,6 +134,8 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
         const int N = work.size();
         //Determine the number of needed threads
         const int USING_THREADS = min(N, NUM_THREADS);
+
+        /* Assign jobs to all the threads */
         assign_jobs(parm, A, N, USING_THREADS);
 
         //Clear out the old items deque
