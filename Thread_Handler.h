@@ -6,6 +6,7 @@ typedef struct {
     int thread_id;
     int left;  // left range of nodes
     int right; // right range of nodes
+    std::vector<int> work_list; // threads' local work_list
 } thread_parm_t;
 
 typedef thread_parm_t* p_thread_parm_t;

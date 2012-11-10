@@ -1,0 +1,3 @@
+TEST SUITE: ./tests/SIZE_15
+PASS 0 --- .461935464 sec
+PASS 1 --- .460362889 sec

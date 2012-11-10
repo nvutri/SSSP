@@ -70,7 +70,7 @@ void *rb_node_relax(void *parm) {
  * @param N: the size of work load. This will be divided up to all threads.
  * @param NUM_THREADS: number of threads to be used.
  */
-void assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
+void rb_assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
     pthread_t threads[MAX_THREADS];
 
     //Determine the workload on each thread
@@ -137,7 +137,7 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
         const int USING_THREADS = min(N, NUM_THREADS);
 
         /* Assign jobs to all the threads */
-        assign_jobs(parm, A, N, USING_THREADS);
+        rb_assign_jobs(parm, A, N, USING_THREADS);
 
         //Clear out the old items deque
         work.erase(work.begin(), work.begin() + N);
@@ -146,8 +146,6 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
     //Clean up data passed to threads
     delete_threads_data(parm, NUM_THREADS);
 
-    //Destroy lock
-//    pthread_spin_destroy(&rb_spin_lock);
 }
 
 /**
