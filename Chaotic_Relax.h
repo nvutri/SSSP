@@ -46,16 +46,10 @@ bool steal_work(p_thread_parm_t* parm, thread_parm_t::work_type& my_work, int my
             for (unsigned i = 0; i < other_work.size() * STEALING_PERCENTAGE; ++i) {
 
                 v = other_work.top();
-//                fprintf(stderr, "%d stole %d: %d \n", my_id, thread_id, v);
                 my_work.push(v);
                 other_work.pop();
             }
-//            fprintf(stderr," %d Done Stealing \n", my_id);
-//            for (unsigned i = 0; i< my_work.size(); ++i){
-//                fprintf(stderr, " %d " , my_work.top());
-//                my_work.pop();
-//            }
-//            fprintf(stderr," %d Done  \n", my_id);
+
             work_list_lock.unlock();
             return true;
         }
@@ -91,10 +85,10 @@ void *chaotic_node_relax(void *parm) {
             v = node._vertex;
             //Crictical computation and decision
             //Acquire Spin Lock
-            ct_spin_lock.acquire();
 
             cost = dist[u] + node._weight;
 
+            ct_spin_lock.acquire();
             if (cost < dist[v]) {
                 //Push node v to the work list
                 work_list_lock.acquire();
