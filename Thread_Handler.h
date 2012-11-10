@@ -10,6 +10,10 @@ typedef struct {
     //Work List Container
     typedef std::priority_queue<int> work_type;
     work_type work_list; // threads' local work_list
+
+    //Access to other threads data
+    void* parm;
+
 } thread_parm_t;
 
 typedef thread_parm_t* p_thread_parm_t;

@@ -14,6 +14,7 @@
 #include "Thread_Handler.h"
 
 #define MAX_THREADS 16
+#define STEALING_PERCENTAGE 1/2
 
 using namespace std;
 //Global Container distance
@@ -23,7 +24,30 @@ extern vector<double> dist;
  * Locking for BF parrallel
  */
 static pthread_spinlock_t ct_spin_lock;
+static int NUM_THREADS;
+/**
+ * @return: true if stole some work. Or All Threads are finished.
+ * @return: false if unable to steal but there are unfinished threads
+ */
 
+//TODO: Have to check if other threads are really finished.
+// Empty work list doesn't determine this!
+
+bool steal_work(p_thread_parm_t* parm, thread_parm_t::work_type& my_work){
+
+    for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id){
+        thread_parm_t::work_type& other_work = parm[thread_id]->work_list;
+        if (!other_work.empty()){
+            //Start stealing
+            for (int i = 0; i < other_work.size() * STEALING_PERCENTAGE; ++i) {
+                my_work.push(other_work.top());
+                other_work.pop();
+            }
+            return true;
+        }
+    }
+    return false;
+}
 /**
  * Relax all edges surrounding node u
  * @param u: source node to relax around
@@ -67,17 +91,21 @@ void *chaotic_node_relax(void *parm) {
 
         }
 
-
+        bool stole = false;
+        while  ( work.empty() && !stole){
+            stole = steal_work(p->parm, work );
+        }
     }
 
     pthread_exit(NULL);
     return NULL;
 }
 
-void init_thread_data(p_thread_parm_t* parm, Graph* const p_A, const int NUM_THREADS){
+void init_thread_data(p_thread_parm_t* parm, Graph* const p_A, const int num_threads){
     int left, right;
     const int N = p_A->num_nodes();
     //Determine the workload on each thread
+    NUM_THREADS = num_threads;
     int RANGE = (int) ceil( (float) N / (float) NUM_THREADS );
 
     //Initialize the thread_work list
@@ -89,6 +117,7 @@ void init_thread_data(p_thread_parm_t* parm, Graph* const p_A, const int NUM_THR
 
         thread->A = p_A;
         thread->thread_id = thread_id;
+        thread->parm = parm;
 
         //Initialize the nodes on the thread in simply sequential order
         for (int node = left, index = 0;
@@ -96,7 +125,6 @@ void init_thread_data(p_thread_parm_t* parm, Graph* const p_A, const int NUM_THR
                 ++node, ++index) {
             thread->work_list.push(node);
         }
-
         left = right;
     }
 
