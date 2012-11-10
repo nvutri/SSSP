@@ -18,7 +18,6 @@
 using namespace std;
 //Global Container distance
 extern vector<double> dist;
-static vector<int> ct_work;
 
 /**
  * Locking for BF parrallel
@@ -34,12 +33,18 @@ void *chaotic_node_relax(void *parm) {
     int v;
     double cost;
     Graph& A = *(p->A);
-    vector<int>::iterator it_work, begin, end;
-    begin = p->work_list.begin();
-    end = p->work_list.end();
+    thread_parm_t::work_type& work = p->work_list;
 
-    for (it_work = begin; it_work != end; ++it_work){
-        int u = *it_work;
+//    cerr << "thread ID: " << p->thread_id << endl;
+//    for (int i = 0; i < work.size(); ++i) {
+//        cerr << work[i] << " ";
+//    }
+//    cerr << endl;
+
+    while (!work.empty()){
+        int u = work.top();
+        work.pop();
+
         list<Node>& edges = A[u];
         list<Node>::iterator iterator;
 
@@ -51,50 +56,76 @@ void *chaotic_node_relax(void *parm) {
             rb_spin_lock.acquire();
 
             cost = dist[u] + node._weight;
+
             if (cost < dist[v]) {
                 //Push node v to the work list
-                work.push_back(v);
+                work.push(v);
                 dist[v] = cost;
             }
             //Release the Spin Lock
             rb_spin_lock.unlock();
 
         }
+
+
     }
 
     pthread_exit(NULL);
     return NULL;
 }
 
+void init_thread_data(p_thread_parm_t* parm, Graph* const p_A, const int NUM_THREADS){
+    int left, right;
+    const int N = p_A->num_nodes();
+    //Determine the workload on each thread
+    int RANGE = (int) ceil( (float) N / (float) NUM_THREADS );
+
+    //Initialize the thread_work list
+    for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id) {
+        left = thread_id * RANGE;
+        right = min (left + RANGE, N);
+
+        p_thread_parm_t& thread = parm[thread_id];
+
+        thread->A = p_A;
+        thread->thread_id = thread_id;
+
+        //Initialize the nodes on the thread in simply sequential order
+        for (int node = left, index = 0;
+                node < right;
+                ++node, ++index) {
+            thread->work_list.push(node);
+        }
+
+        left = right;
+    }
+
+}
+
 /**
- * Assign jobs to THREADS.
- * @param parm: parameter data for each thread.
- * @param A: the Graph.
- * @param N: the size of work load. This will be divided up to all threads.
- * @param NUM_THREADS: number of threads to be used.
+ * Chaotic Relaxation
+ * @A: the graph
  */
-void ct_assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
+void Chaotic_Relaxation(Graph& A, const int SOURCE, const int NUM_THREADS) {
+    /**
+     * Define threads and parameters for them
+     */
+    assert(NUM_THREADS <= MAX_THREADS);
+    p_thread_parm_t parm[MAX_THREADS];
     pthread_t threads[MAX_THREADS];
 
-    //Determine the workload on each thread
-    int RANGE = (int) ceil( (float)N / (float)NUM_THREADS );
+    //Init Spin Locking
+    rb_spin_lock = SpinLock();
+
+    //Init param for threads
+    create_threads_storage(parm, NUM_THREADS);
+    init_thread_data(parm, &A, NUM_THREADS);
 
     /**
-     * Running the Program in multiple Threads.
+     * Start All Threads
      */
     int rc = 0;
-    //Iterator to access work list
-    vector<int>::iterator left, right;
-    left = work.begin();
-
     for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id) {
-        right = left + RANGE;
-
-        parm[thread_id]->A = &A;
-        parm[thread_id]->thread_id = thread_id;
-        //Initialize the thread_work list
-        parm[thread_id]->work_list = vector<int>(left, right );
-
         rc = pthread_create(&threads[thread_id], NULL, chaotic_node_relax,
                             (void *) parm[thread_id]);
         if (rc) {
@@ -104,49 +135,12 @@ void ct_assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
             delete_threads_data(parm, NUM_THREADS);
             exit(-1);
         }
-        left = right;
     }
 
     /**
      * Wait for all threads to finish
      */
     join_threads(threads, NUM_THREADS);
-}
-
-/**
- * Parallel Ford Bellman Round Based
- * @A: the graph
- */
-void Chaotic_Relaxation(Graph& A, const int SOURCE, const int NUM_THREADS) {
-
-    //Resize work to fit. Maximumly need size of 2* NUM_NODE
-    const int NUM_NODE = A.num_nodes();
-    work.resize(min(2 * NUM_NODE, A.num_edges()), 0);
-
-    assert(NUM_THREADS <= MAX_THREADS);
-    p_thread_parm_t parm[MAX_THREADS];
-
-    //Init Spin Locking
-    rb_spin_lock = SpinLock();
-
-    //Init param for threads
-    create_threads_data(parm, NUM_THREADS);
-
-    //Start out with 1 node;
-    work.clear();
-    work.push_back(SOURCE);
-
-    while (!work.empty()) {
-        const int N = work.size();
-        //Determine the number of needed threads
-        const int USING_THREADS = min(N, NUM_THREADS);
-
-        /* Assign jobs to all the threads */
-        ct_assign_jobs(parm, A, N, USING_THREADS);
-
-        //Clear out the old items deque
-        work.erase(work.begin(), work.begin() + N);
-    }
 
     //Clean up data passed to threads
     delete_threads_data(parm, NUM_THREADS);

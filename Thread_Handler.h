@@ -6,7 +6,10 @@ typedef struct {
     int thread_id;
     int left;  // left range of nodes
     int right; // right range of nodes
-    std::vector<int> work_list; // threads' local work_list
+
+    //Work List Container
+    typedef std::priority_queue<int> work_type;
+    work_type work_list; // threads' local work_list
 } thread_parm_t;
 
 typedef thread_parm_t* p_thread_parm_t;
@@ -15,7 +18,7 @@ typedef thread_parm_t* p_thread_parm_t;
  * Allocate memory for passing parameters to the threads
  * Free and initialize them
  */
-void create_threads_data(p_thread_parm_t* parm, const int NUM_THREADS){
+void create_threads_storage(p_thread_parm_t* parm, const int NUM_THREADS){
     for (int t = 0; t < NUM_THREADS; ++t) {
         parm[t] = new thread_parm_t;
     }

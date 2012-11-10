@@ -17,7 +17,7 @@
 using namespace std;
 //Global Container distance
 extern vector<double> dist;
-static vector<int> work;
+static vector<int> rb_work;
 
 /**
  * Locking for BF parrallel
@@ -37,7 +37,7 @@ void *rb_node_relax(void *parm) {
     const int RIGHT = p->right;
 
     for (int i = LEFT; i < RIGHT; ++i) {
-        int u = work[i];
+        int u = rb_work[i];
         list<Node>& edges = A[u];
         list<Node>::iterator iterator;
         for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
@@ -49,8 +49,8 @@ void *rb_node_relax(void *parm) {
 
             cost = dist[u] + node._weight;
             if (cost < dist[v]) {
-                //Push node v to the work list
-                work.push_back(v);
+                //Push node v to the rb_work list
+                rb_work.push_back(v);
                 dist[v] = cost;
             }
             //Release the Spin Lock
@@ -67,13 +67,13 @@ void *rb_node_relax(void *parm) {
  * Assign jobs to THREADS.
  * @param parm: parameter data for each thread.
  * @param A: the Graph.
- * @param N: the size of work load. This will be divided up to all threads.
+ * @param N: the size of rb_work load. This will be divided up to all threads.
  * @param NUM_THREADS: number of threads to be used.
  */
 void rb_assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
     pthread_t threads[MAX_THREADS];
 
-    //Determine the workload on each thread
+    //Determine the rb_workload on each thread
     int RANGE = ceil( (float)N / (float)NUM_THREADS );
 
     /**
@@ -114,9 +114,9 @@ void rb_assign_jobs(p_thread_parm_t* parm, Graph& A, int N, int NUM_THREADS) {
  */
 void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
 
-    //Resize work to fit. Maximumly need size of 2* NUM_NODE
+    //Resize rb_work to fit. Maximumly need size of 2* NUM_NODE
     const int NUM_NODE = A.num_nodes();
-    work.resize(min(2 * NUM_NODE, A.num_edges()), 0);
+    rb_work.resize(min(2 * NUM_NODE, A.num_edges()), 0);
 
     assert(NUM_THREADS <= MAX_THREADS);
     p_thread_parm_t parm[MAX_THREADS];
@@ -125,14 +125,14 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
     rb_spin_lock = SpinLock();
 
     //Init param for threads
-    create_threads_data(parm, NUM_THREADS);
+    create_threads_storage(parm, NUM_THREADS);
 
     //Start out with 1 node;
-    work.clear();
-    work.push_back(SOURCE);
+    rb_work.clear();
+    rb_work.push_back(SOURCE);
 
-    while (!work.empty()) {
-        const int N = work.size();
+    while (!rb_work.empty()) {
+        const int N = rb_work.size();
         //Determine the number of needed threads
         const int USING_THREADS = min(N, NUM_THREADS);
 
@@ -140,7 +140,7 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
         rb_assign_jobs(parm, A, N, USING_THREADS);
 
         //Clear out the old items deque
-        work.erase(work.begin(), work.begin() + N);
+        rb_work.erase(rb_work.begin(), rb_work.begin() + N);
     }
 
     //Clean up data passed to threads
@@ -149,11 +149,11 @@ void Round_Based(Graph& A, const int SOURCE, const int NUM_THREADS) {
 }
 
 /**
- * Dump out the work load
+ * Dump out the rb_work load
  */
-void print_work() {
-    for (unsigned int i = 0; i < work.size(); ++i) {
-        cerr << work[i] << " ";
+void print_rb_work() {
+    for (unsigned int i = 0; i < rb_work.size(); ++i) {
+        cerr << rb_work[i] << " ";
     }
     cerr << endl;
 }
