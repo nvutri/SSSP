@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <vector>
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 #include <cassert>
 #include <algorithm>
@@ -23,30 +24,44 @@ extern vector<double> dist;
 /**
  * Locking for BF parrallel
  */
-static pthread_spinlock_t ct_spin_lock;
+static SpinLock ct_spin_lock;
+static SpinLock work_list_lock;
+
 static int NUM_THREADS;
 /**
  * @return: true if stole some work. Or All Threads are finished.
  * @return: false if unable to steal but there are unfinished threads
  */
 
-//TODO: Have to check if other threads are really finished.
-// Empty work list doesn't determine this!
-
-bool steal_work(p_thread_parm_t* parm, thread_parm_t::work_type& my_work){
+bool steal_work(p_thread_parm_t* parm, thread_parm_t::work_type& my_work, int my_id){
+    int v;
+    bool exists_busy_threads = false;
 
     for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id){
         thread_parm_t::work_type& other_work = parm[thread_id]->work_list;
-        if (!other_work.empty()){
+        if (parm[thread_id]->busy){
             //Start stealing
-            for (int i = 0; i < other_work.size() * STEALING_PERCENTAGE; ++i) {
-                my_work.push(other_work.top());
+            exists_busy_threads = true;
+            work_list_lock.acquire();
+            for (unsigned i = 0; i < other_work.size() * STEALING_PERCENTAGE; ++i) {
+
+                v = other_work.top();
+//                fprintf(stderr, "%d stole %d: %d \n", my_id, thread_id, v);
+                my_work.push(v);
                 other_work.pop();
             }
+//            fprintf(stderr," %d Done Stealing \n", my_id);
+//            for (unsigned i = 0; i< my_work.size(); ++i){
+//                fprintf(stderr, " %d " , my_work.top());
+//                my_work.pop();
+//            }
+//            fprintf(stderr," %d Done  \n", my_id);
+            work_list_lock.unlock();
             return true;
         }
     }
-    return false;
+
+    return !exists_busy_threads;
 }
 /**
  * Relax all edges surrounding node u
@@ -54,20 +69,19 @@ bool steal_work(p_thread_parm_t* parm, thread_parm_t::work_type& my_work){
  */
 void *chaotic_node_relax(void *parm) {
     p_thread_parm_t p = (p_thread_parm_t) parm;
-    int v;
+    int u, v;
     double cost;
     Graph& A = *(p->A);
     thread_parm_t::work_type& work = p->work_list;
 
-//    cerr << "thread ID: " << p->thread_id << endl;
-//    for (int i = 0; i < work.size(); ++i) {
-//        cerr << work[i] << " ";
-//    }
-//    cerr << endl;
+    p->busy = true;
 
     while (!work.empty()){
-        int u = work.top();
+
+        work_list_lock.acquire();
+        u = work.top();
         work.pop();
+        work_list_lock.unlock();
 
         list<Node>& edges = A[u];
         list<Node>::iterator iterator;
@@ -77,26 +91,30 @@ void *chaotic_node_relax(void *parm) {
             v = node._vertex;
             //Crictical computation and decision
             //Acquire Spin Lock
-            rb_spin_lock.acquire();
+            ct_spin_lock.acquire();
 
             cost = dist[u] + node._weight;
 
             if (cost < dist[v]) {
                 //Push node v to the work list
+                work_list_lock.acquire();
                 work.push(v);
+                work_list_lock.unlock();
+
                 dist[v] = cost;
             }
             //Release the Spin Lock
-            rb_spin_lock.unlock();
+            ct_spin_lock.unlock();
 
         }
 
         bool stole = false;
         while  ( work.empty() && !stole){
-            stole = steal_work(p->parm, work );
+            stole = steal_work(p->parm, work, p->thread_id );
         }
     }
 
+    p->busy = false;
     pthread_exit(NULL);
     return NULL;
 }
@@ -118,7 +136,7 @@ void init_thread_data(p_thread_parm_t* parm, Graph* const p_A, const int num_thr
         thread->A = p_A;
         thread->thread_id = thread_id;
         thread->parm = parm;
-
+        thread->busy = false;
         //Initialize the nodes on the thread in simply sequential order
         for (int node = left, index = 0;
                 node < right;
@@ -143,7 +161,8 @@ void Chaotic_Relaxation(Graph& A, const int SOURCE, const int NUM_THREADS) {
     pthread_t threads[MAX_THREADS];
 
     //Init Spin Locking
-    rb_spin_lock = SpinLock();
+    ct_spin_lock = SpinLock();
+    work_list_lock = SpinLock();
 
     //Init param for threads
     create_threads_storage(parm, NUM_THREADS);

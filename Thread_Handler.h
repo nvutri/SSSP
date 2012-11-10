@@ -1,7 +1,10 @@
 #ifndef _THREAD_HANDLER_H
 #define _THREAD_HANDLER_H
 //Thread data container
-typedef struct {
+typedef struct thread_parm_t thread_parm_t;
+typedef thread_parm_t* p_thread_parm_t;
+
+struct thread_parm_t{
     Graph* A;
     int thread_id;
     int left;  // left range of nodes
@@ -12,11 +15,13 @@ typedef struct {
     work_type work_list; // threads' local work_list
 
     //Access to other threads data
-    void* parm;
+    p_thread_parm_t *parm;
 
-} thread_parm_t;
+    //Thread Busy flag
+    bool busy;
+};
 
-typedef thread_parm_t* p_thread_parm_t;
+
 
 /**
  * Allocate memory for passing parameters to the threads
