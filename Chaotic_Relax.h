@@ -13,6 +13,7 @@
 
 #include "Graph.h"
 #include "Thread_Handler.h"
+#include "Atomic.h"
 
 #define MAX_THREADS 16
 #define STEALING_PERCENTAGE 1/2
@@ -24,7 +25,7 @@ extern vector<int> dist;
 /**
  * Locking for BF parrallel
  */
-static SpinLock ct_spin_lock;
+//static SpinLock ct_spin_lock;
 static SpinLock work_list_lock;
 
 static int NUM_THREADS;
@@ -65,6 +66,7 @@ void *chaotic_node_relax(void *parm) {
     p_thread_parm_t p = (p_thread_parm_t) parm;
     int u, v;
     int cost;
+    bool changed;
     Graph& A = *(p->A);
     thread_parm_t::work_type& work = p->work_list;
 
@@ -88,17 +90,18 @@ void *chaotic_node_relax(void *parm) {
 
             cost = dist[u] + node._weight;
 
-            ct_spin_lock.acquire();
-            if (cost < dist[v]) {
+//            ct_spin_lock.acquire();
+            changed  = atomic_min( dist[v], cost);
+            if (changed) {
                 //Push node v to the work list
                 work_list_lock.acquire();
                 work.push(v);
                 work_list_lock.unlock();
 
-                dist[v] = cost;
+//                dist[v] = cost;
             }
             //Release the Spin Lock
-            ct_spin_lock.unlock();
+//            ct_spin_lock.unlock();
 
         }
 
@@ -155,7 +158,7 @@ void Chaotic_Relaxation(Graph& A, const int SOURCE, const int NUM_THREADS) {
     pthread_t threads[MAX_THREADS];
 
     //Init Spin Locking
-    ct_spin_lock = SpinLock();
+//    ct_spin_lock = SpinLock();
     work_list_lock = SpinLock();
 
     //Init param for threads
