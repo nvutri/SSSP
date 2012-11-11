@@ -16,7 +16,7 @@
 
 using namespace std;
 //Global Container distance
-extern vector<double> dist;
+extern vector<int> dist;
 static vector<int> rb_work;
 
 /**
@@ -31,7 +31,7 @@ static SpinLock rb_spin_lock;
 void *rb_node_relax(void *parm) {
     p_thread_parm_t p = (p_thread_parm_t) parm;
     int v;
-    double cost;
+    int cost;
     Graph& A = *(p->A);
     const int LEFT = p->left;
     const int RIGHT = p->right;

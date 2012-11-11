@@ -9,7 +9,7 @@
 #ifndef _DIJKSTRA_H
 #define _DIJKSTRA_H
 
-extern std::vector<double> dist;
+extern std::vector<int> dist;
 
 /**
  * Class to compare 2 nodes for the priority queue

@@ -9,12 +9,12 @@
 
 struct Node{
     long _vertex;
-    double _weight;
-    double _dist;
-    Node(int vertex, double weight, double dist):
+    int _weight;
+    int _dist;
+    Node(int vertex, int weight, int dist):
         _vertex(vertex), _weight(weight), _dist(dist){
     }
-    Node(int vertex, double weight):
+    Node(int vertex, int weight):
         _vertex(vertex), _weight(weight){
     }
 
@@ -34,7 +34,7 @@ class Graph {
     int num_edges() const;
     Graph(int NUM_NODES, int NUM_EDGES);
 
-    void insert(int x, int y, double weight);
+    void insert(int x, int y, int weight);
     int vertex(int x, int index);
     std::list<Node>& operator [] (int x);
     void print();
@@ -65,7 +65,7 @@ int Graph::num_edges() const{
 /**
  * Insert an edge
  */
-void Graph::insert(int x, int y, double weight) {
+void Graph::insert(int x, int y, int weight) {
     Node node(y, weight);
     _m[x].push_back(node );
 }

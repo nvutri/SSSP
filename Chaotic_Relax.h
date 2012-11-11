@@ -19,7 +19,7 @@
 
 using namespace std;
 //Global Container distance
-extern vector<double> dist;
+extern vector<int> dist;
 
 /**
  * Locking for BF parrallel
@@ -64,7 +64,7 @@ bool steal_work(p_thread_parm_t* parm, thread_parm_t::work_type& my_work, int my
 void *chaotic_node_relax(void *parm) {
     p_thread_parm_t p = (p_thread_parm_t) parm;
     int u, v;
-    double cost;
+    int cost;
     Graph& A = *(p->A);
     thread_parm_t::work_type& work = p->work_list;
 
