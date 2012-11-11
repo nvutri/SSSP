@@ -1,5 +1,5 @@
 rm -f SSSP.app
-g++ -ansi -pedantic -lcppunit -ldl -lpthread -Wall SSSP.c++ -o SSSP.app
+g++ -O3 -ansi -pedantic -ldl -lpthread -Wall SSSP.c++ -o SSSP.app
 
 FOLDER=./tests/SIZE_15
 OUTPUT=./graph.out
