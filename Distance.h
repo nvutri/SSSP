@@ -8,7 +8,7 @@
 #ifndef DISTANCE_H_
 #define DISTANCE_H_
 
-#define MAX_VALUE 214748364
+#define MAX_VALUE 1000000000
 /**
  * Global container
  */
