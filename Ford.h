@@ -1,9 +1,6 @@
 #ifndef _FORD_H
 #define _FORD_H
 
-//Global Container distance
-extern std::vector<double> dist;
-
 /*
  * procedure BellmanFord(list vertices, list edges, vertex source)
  */

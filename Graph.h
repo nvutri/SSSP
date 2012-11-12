@@ -8,20 +8,12 @@
 #define _GRAPH_H
 
 struct Node{
-    long _vertex;
+    int _vertex;
     int _weight;
-    int _dist;
-    Node(int vertex, int weight, int dist):
-        _vertex(vertex), _weight(weight), _dist(dist){
-    }
     Node(int vertex, int weight):
         _vertex(vertex), _weight(weight){
     }
 
-    bool operator()(Node n1, Node n2) // Returns true if t1 is earlier than t2
-    {
-       return n1._dist < n2._dist;
-    }
 };
 class Graph {
   private:

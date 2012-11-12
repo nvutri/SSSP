@@ -11,28 +11,17 @@
 #include <stdio.h>
 
 #include "Graph.h"
+#include "Distance.h"
 #include "Dijkstra.h"
-//#include "Ford.h"
-//#include "Ford_Parallel.h"
 #include "Round_Based.h"
 #include "Chaotic_Relax.h"
 using namespace std;
-
-/**
- * Global container
- */
-
-std::vector<int> dist;
 
 /**
  * Function Prototype
  */
 void read_graph(Graph& A);
 void read_graph_dimension(int& NUM_NODES, int& NUM_EDGES);
-
-void dist_init(int SOURCE, const int N);
-void dist_verify(Graph& A, const int N);
-void dist_print(const int N);
 
 // ----
 // main
@@ -65,10 +54,6 @@ int main(int argc, char** argv) {
 
     if ( strcmp(ALGORITHM, "DIJK") == 0)
         Dijkstra(A, SOURCE);
-//    if ( strcmp(ALGORITHM, "BF") == 0)
-//        Bellmanford(A, SOURCE);
-//    if ( strcmp(ALGORITHM, "BFPL") == 0)
-//        Bellmanford_parallel(A, SOURCE, NUM_THREADS);
     if ( strcmp(ALGORITHM, "RB") == 0)
         Round_Based(A, SOURCE, NUM_THREADS);
     if ( strcmp(ALGORITHM, "CT") == 0)
@@ -126,35 +111,4 @@ void read_graph(Graph& A) {
     }
 }
 
-void dist_init(int SOURCE, const int N) {
-    dist = std::vector<int>(N);
-    for (int i = 0; i < N; ++i) {
-        dist[i] = LONG_MAX / 2 ;
-    }
-    dist[SOURCE] = 0;
-}
-
-void dist_verify(Graph& A, const int N) {
-    for (int x = 0; x < N; ++x) {
-        std::list<Node> edges = A[x];
-        std::list<Node>::iterator iterator;
-        for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
-            Node node = *iterator;
-            int y = node._vertex;
-            int weight = node._weight;
-            assert(dist[x] + weight >= dist[y]);
-        }
-    }
-}
-
-void dist_print(const int N) {
-    for (int i = 1; i < N; ++i){
-        std::cout << i;
-        if (dist[i] != LONG_MAX) {
-             std::cout << " " << dist[i] << std::endl;
-        }
-        else
-            std::cout << " " << "INF" << std::endl;
-    }
-}
 

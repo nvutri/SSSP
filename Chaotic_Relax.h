@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "Graph.h"
+#include "SpinLock.h"
 #include "Thread_Handler.h"
 #include "Atomic.h"
 
@@ -19,13 +20,11 @@
 #define STEALING_PERCENTAGE 1/2
 
 using namespace std;
-//Global Container distance
-extern vector<int> dist;
 
 /**
  * Locking for BF parrallel
  */
-//static SpinLock ct_spin_lock;
+static SpinLock ct_spin_lock;
 static SpinLock work_list_lock;
 
 static int NUM_THREADS;
@@ -90,18 +89,19 @@ void *chaotic_node_relax(void *parm) {
 
             cost = dist[u] + node._weight;
 
-//            ct_spin_lock.acquire();
-            changed  = atomic_min( dist[v], cost);
+            ct_spin_lock.acquire();
+//            changed  = atomic_min( dist[v], cost);
+            changed = cost < dist[v];
             if (changed) {
                 //Push node v to the work list
                 work_list_lock.acquire();
                 work.push(v);
                 work_list_lock.unlock();
 
-//                dist[v] = cost;
+                dist[v] = cost;
             }
             //Release the Spin Lock
-//            ct_spin_lock.unlock();
+            ct_spin_lock.unlock();
 
         }
 

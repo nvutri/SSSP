@@ -12,8 +12,6 @@
 
 #define MAX_THREADS 16
 
-//Global Container distance
-extern std::vector<double> dist;
 static bool graph_changed;
 
 /**

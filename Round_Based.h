@@ -15,8 +15,7 @@
 #define MAX_THREADS 16
 
 using namespace std;
-//Global Container distance
-extern vector<int> dist;
+
 static vector<int> rb_work;
 
 /**
