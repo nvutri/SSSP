@@ -64,7 +64,7 @@ bool steal_work(p_thread_parm_t* parm, thread_parm_t::work_type& my_work, int my
 void *chaotic_node_relax(void *parm) {
     p_thread_parm_t p = (p_thread_parm_t) parm;
     int u, v;
-    int cost;
+    long cost;
     bool changed;
     Graph& A = *(p->A);
     thread_parm_t::work_type& work = p->work_list;
@@ -73,10 +73,10 @@ void *chaotic_node_relax(void *parm) {
 
     while (!work.empty()){
 
-        work_list_lock.acquire();
+//        work_list_lock.acquire();
         u = work.top();
         work.pop();
-        work_list_lock.unlock();
+//        work_list_lock.unlock();
 
         list<Node>& edges = A[u];
         list<Node>::iterator iterator;
@@ -89,26 +89,25 @@ void *chaotic_node_relax(void *parm) {
 
             cost = dist[u] + node._weight;
 
-            ct_spin_lock.acquire();
-//            changed  = atomic_min( dist[v], cost);
-            changed = cost < dist[v];
+//            ct_spin_lock.acquire();
+            changed  = atomic_min( dist[v], cost);
+//            changed = dist[v] > cost;
             if (changed) {
                 //Push node v to the work list
-                work_list_lock.acquire();
+//                work_list_lock.acquire();
                 work.push(v);
-                work_list_lock.unlock();
-
-                dist[v] = cost;
+//                work_list_lock.unlock();
+//                dist[v] = cost;
             }
             //Release the Spin Lock
-            ct_spin_lock.unlock();
+//            ct_spin_lock.unlock();
 
         }
 
-        bool stole = false;
-        while  ( work.empty() && !stole){
-            stole = steal_work(p->parm, work, p->thread_id );
-        }
+//        bool stole = false;
+//        while  ( work.empty() && !stole){
+//            stole = steal_work(p->parm, work, p->thread_id );
+//        }
     }
 
     p->busy = false;
