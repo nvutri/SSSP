@@ -24,7 +24,6 @@ using namespace std;
 /**
  * Locking for BF parrallel
  */
-static SpinLock ct_spin_lock;
 static SpinLock work_list_lock;
 
 static int NUM_THREADS;
@@ -42,6 +41,7 @@ bool steal_work(p_thread_parm_t* parm, thread_parm_t::work_type& my_work, int my
         if (parm[thread_id]->busy){
             //Start stealing
             exists_busy_threads = true;
+            //Acquire locking
             work_list_lock.acquire();
             for (unsigned i = 0; i < other_work.size() * STEALING_PERCENTAGE; ++i) {
 
@@ -49,7 +49,7 @@ bool steal_work(p_thread_parm_t* parm, thread_parm_t::work_type& my_work, int my
                 my_work.push(v);
                 other_work.pop();
             }
-
+            //Release Locking
             work_list_lock.unlock();
             return true;
         }
@@ -84,22 +84,14 @@ void *chaotic_node_relax(void *parm) {
         for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
             Node node = *iterator;
             v = node._vertex;
-            //Crictical computation and decision
-            //Acquire Spin Lock
-
             cost = dist[u] + node._weight;
-
-            ct_spin_lock.acquire();
-            if (dist[v] > cost) {
+            changed = atomic_min(&dist[v], cost);
+            if (changed) {
                 //Push node v to the work list
                 work_list_lock.acquire();
                 work.push(v);
                 work_list_lock.unlock();
-                dist[v] = cost;
             }
-            //Release the Spin Lock
-            ct_spin_lock.unlock();
-
         }
 
         bool stole = false;
@@ -155,7 +147,6 @@ void Chaotic_Relaxation(Graph& A, const int SOURCE, const int NUM_THREADS) {
     pthread_t threads[MAX_THREADS];
 
     //Init Spin Locking
-    ct_spin_lock = SpinLock();
     work_list_lock = SpinLock();
 
     //Init param for threads
