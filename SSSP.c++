@@ -15,6 +15,8 @@
 #include "Dijkstra.h"
 #include "Round_Based.h"
 #include "Chaotic_Relax.h"
+#include "Delta_Stepping.h"
+
 using namespace std;
 
 /**
@@ -58,6 +60,8 @@ int main(int argc, char** argv) {
         Round_Based(A, SOURCE, NUM_THREADS);
     if ( strcmp(ALGORITHM, "CT") == 0)
         Chaotic_Relaxation(A, SOURCE, NUM_THREADS);
+    if ( strcmp(ALGORITHM, "DT") == 0)
+        Delta_Stepping(A, SOURCE, NUM_THREADS);
 
     dist_verify(A, NUM_NODES);
     dist_print(NUM_NODES);
