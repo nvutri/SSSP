@@ -1,5 +1,6 @@
 #ifndef _THREAD_HANDLER_H
 #define _THREAD_HANDLER_H
+
 //Thread data container
 typedef struct thread_parm_t thread_parm_t;
 typedef thread_parm_t* p_thread_parm_t;
@@ -11,7 +12,7 @@ struct thread_parm_t{
     int right; // right range of nodes
 
     //Work List Container
-    typedef std::priority_queue<int> work_type;
+    typedef std::priority_queue<int, std::vector<int>, CompareNode> work_type;
     work_type work_list; // threads' local work_list
 
     //Access to other threads data

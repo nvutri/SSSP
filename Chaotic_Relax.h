@@ -73,10 +73,10 @@ void *chaotic_node_relax(void *parm) {
 
     while (!work.empty()){
 
-        work_list_lock.acquire();
+//        work_list_lock.acquire();
         u = work.top();
         work.pop();
-        work_list_lock.unlock();
+//        work_list_lock.unlock();
 
         list<Node>& edges = A[u];
         list<Node>::iterator iterator;
@@ -88,16 +88,16 @@ void *chaotic_node_relax(void *parm) {
             changed = atomic_min(&dist[v], cost);
             if (changed) {
                 //Push node v to the work list
-                work_list_lock.acquire();
+//                work_list_lock.acquire();
                 work.push(v);
-                work_list_lock.unlock();
+//                work_list_lock.unlock();
             }
         }
 
-        bool stole = false;
-        while  ( work.empty() && !stole){
-            stole = steal_work(p->parm, work, p->thread_id );
-        }
+//        bool stole = false;
+//        while  ( work.empty() && !stole){
+//            stole = steal_work(p->parm, work, p->thread_id );
+//        }
     }
 
     p->busy = false;
@@ -124,9 +124,7 @@ void init_thread_data(p_thread_parm_t* parm, Graph* const p_A, const int num_thr
         thread->parm = parm;
         thread->busy = false;
         //Initialize the nodes on the thread in simply sequential order
-        for (int node = left, index = 0;
-                node < right;
-                ++node, ++index) {
+        for (int node = left; node < right; ++node) {
             thread->work_list.push(node);
         }
         left = right;

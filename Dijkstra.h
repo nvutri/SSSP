@@ -10,17 +10,6 @@
 #define _DIJKSTRA_H
 
 /**
- * Class to compare 2 nodes for the priority queue
- */
-class CompareNode {
-    public:
-    bool operator()(int n1, int n2) // Returns true if t1 is earlier than t2
-    {
-       return dist[n1] > dist[n2];
-    }
-};
-
-/**
  * Process Dijkstra algorithm.
  * Read the graph, initialize and run dijkstra algorithm
  */
