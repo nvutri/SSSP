@@ -15,6 +15,8 @@ struct thread_parm_t{
     typedef std::priority_queue<int, std::vector<int>, CompareNode> work_type;
     work_type work_list; // threads' local work_list
 
+    //Delta To Limit Work load on
+    int DELTA_MAX;
     //Access to other threads data
     p_thread_parm_t *parm;
 

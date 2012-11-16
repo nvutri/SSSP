@@ -23,49 +23,97 @@
 
 using namespace std;
 
-//static deque<int> node_list;
+static vector<int> bucket;
+/**
+ * Relax all edges surrounding node u
+ * @param u: source node to relax around
+ */
+void *delta_node_relax(void *parm) {
+    p_thread_parm_t p = (p_thread_parm_t) parm;
+    int u, v;
+    long cost;
+    bool changed;
+    Graph& A = *(p->A);
+    thread_parm_t::work_type& work = p->work_list;
+
+    p->busy = true;
+
+    while (!work.empty()) {
+
+        work_list_lock.acquire();
+        u = work.top();
+        work.pop();
+        work_list_lock.unlock();
+
+        list<Node>& edges = A[u];
+        list<Node>::iterator iterator;
+
+        for (iterator = edges.begin(); iterator != edges.end(); ++iterator) {
+            Node node = *iterator;
+            v = node._vertex;
+            // light situation
+            if (node._weight < p->DELTA_MAX) {
+                cost = dist[u] + node._weight;
+                changed = atomic_min(&dist[v], cost);
+                if (changed) {
+                    //Push node v to the work list
+                    work_list_lock.acquire();
+                    work.push(v);
+                    work_list_lock.unlock();
+                }
+            } else {
+                // heavy situation
+                bucket.push_back(v);
+            }
+
+        }
+    }
+
+    bool stole = false;
+    while (work.empty() && !stole) {
+        stole = steal_work(p->parm, work, p->thread_id);
+    }
+
+    p->busy = false;
+    pthread_exit(NULL);
+    return NULL;
+}
+
 /**
  * Init Thread Data in Delta Stepping Style
  */
 void init_delta_thread_data(p_thread_parm_t* parm, Graph* const p_A,
-                      const int num_threads,
-                      const int MIN_VAL,
-                      const int MAX_VAl){
+                            const int num_threads, const int DELTA_MIN,
+                            const int DELTA_MAX) {
 
-//    const int N = node_list.size();
-    const int N = p_A->num_nodes();
+    const int N = bucket.size();
     //Determine the workload on each thread
     NUM_THREADS = num_threads;
 
-    int RANGE = (int) ceil( (float) N / (float) NUM_THREADS );
+    int RANGE = (int) ceil((float) N / (float) NUM_THREADS);
 
     //Initialize the thread_work list
     int left, right;
     for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id) {
         left = thread_id * RANGE;
-        right = min (left + RANGE, N);
+        right = min(left + RANGE, N);
 
         p_thread_parm_t& thread = parm[thread_id];
 
         thread->A = p_A;
         thread->thread_id = thread_id;
         thread->parm = parm;
+        thread->DELTA_MAX = DELTA_MAX;
         thread->busy = false;
 
-//        deque<int>::iterator it;
-        //Initialize the nodes on the thread in simply sequential order
-//        for (it = node_list.begin(); it != node_list.end(); it++){
-//            int node = *it;
-//                node_list.erase(it);
-        for (int node = left; node < right; ++node)
-            if (MIN_VAL <= dist[node] && dist[node] < MAX_VAl) {
-                thread->work_list.push(node);
-            }
+        for (int node = left; node < right; ++node) {
+            thread->work_list.push(bucket[node]);
+        }
         left = right;
     }
 
+    bucket.clear();
 }
-
 /**
  * Chaotic Relaxation
  * @A: the graph
@@ -74,40 +122,37 @@ void Delta_Stepping(Graph& A, const int SOURCE, const int NUM_THREADS) {
     /**
      * Define threads and parameters for them
      */
-    const int DELTA = 100;
-    const int num_steps = 10;
+
     assert(NUM_THREADS <= MAX_THREADS);
     p_thread_parm_t parm[MAX_THREADS];
     pthread_t threads[MAX_THREADS];
 
-    //Init Spin Locking
+//Init Spin Locking
     work_list_lock = SpinLock();
 
-    //Init param for threads
+//Init param for threads
     create_threads_storage(parm, NUM_THREADS);
 
-    //Create a list of nodes
-//    node_list.clear();
-//    for (int i = 0; i < A.num_nodes(); ++i) {
-//        node_list.push_back(i);
-//    }
+    bucket.push_back(SOURCE);
 
-    int min_val, max_val;
-    for (int i_d = 0; i_d < num_steps ; ++i_d) {
-        min_val  = i_d * DELTA;
-        max_val = (i_d + 1) * DELTA;
-        init_delta_thread_data(parm, &A, NUM_THREADS, min_val, max_val);
+    const int DELTA = 1;
+    int DELTA_MIN, DELTA_MAX;
+    int i_d = 0;
+    while (!bucket.empty()) {
+        DELTA_MIN = i_d * DELTA;
+        DELTA_MAX = (i_d + 1) * DELTA;
+        init_delta_thread_data(parm, &A, NUM_THREADS, DELTA_MIN, DELTA_MAX);
 
         /**
          * Start All Threads
          */
         int rc = 0;
         for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id) {
-            rc = pthread_create(&threads[thread_id], NULL, chaotic_node_relax,
+            rc = pthread_create(&threads[thread_id], NULL, delta_node_relax,
                                 (void *) parm[thread_id]);
             if (rc) {
                 cerr << "ERROR; return code from pthread_create() is "
-                          << thread_id << endl;
+                     << thread_id << endl;
 
                 delete_threads_data(parm, NUM_THREADS);
                 exit(-1);
@@ -120,7 +165,7 @@ void Delta_Stepping(Graph& A, const int SOURCE, const int NUM_THREADS) {
         join_threads(threads, NUM_THREADS);
 
     }
-    //Clean up data passed to threads
+//Clean up data passed to threads
     delete_threads_data(parm, NUM_THREADS);
 
 }
