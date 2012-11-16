@@ -105,17 +105,13 @@ void *chaotic_node_relax(void *parm) {
     return NULL;
 }
 
-void init_thread_data(p_thread_parm_t* parm, Graph* const p_A, const int num_threads){
-    int left, right;
-    const int N = p_A->num_nodes();
+void init_thread_data(p_thread_parm_t* parm, Graph* const p_A,
+                      const int num_threads, const int SOURCE){
     //Determine the workload on each thread
     NUM_THREADS = num_threads;
-    int RANGE = (int) ceil( (float) N / (float) NUM_THREADS );
 
     //Initialize the thread_work list
     for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id) {
-        left = thread_id * RANGE;
-        right = min (left + RANGE, N);
 
         p_thread_parm_t& thread = parm[thread_id];
 
@@ -123,13 +119,10 @@ void init_thread_data(p_thread_parm_t* parm, Graph* const p_A, const int num_thr
         thread->thread_id = thread_id;
         thread->parm = parm;
         thread->busy = false;
-        //Initialize the nodes on the thread in simply sequential order
-        for (int node = left; node < right; ++node) {
-            thread->work_list.push(node);
-        }
-        left = right;
     }
 
+    //Init thread 0 work list with source
+    parm[0]->work_list.push(SOURCE);
 }
 
 /**
@@ -149,7 +142,7 @@ void Chaotic_Relaxation(Graph& A, const int SOURCE, const int NUM_THREADS) {
 
     //Init param for threads
     create_threads_storage(parm, NUM_THREADS);
-    init_thread_data(parm, &A, NUM_THREADS);
+    init_thread_data(parm, &A, NUM_THREADS, SOURCE);
 
     /**
      * Start All Threads
