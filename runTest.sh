@@ -1,7 +1,7 @@
 rm -f SSSP.app
 g++ -ansi -O3  -pedantic -lpthread -Wall SSSP.c++ -o SSSP.app
 
-FOLDER=./tests/SIZE_4
+FOLDER=./tests/SIZE_18
 OUTPUT=./graph.out
 NUM_TEST=10
 echo "TEST SUITE: $FOLDER $1"
