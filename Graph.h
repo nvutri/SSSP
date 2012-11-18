@@ -17,6 +17,9 @@ struct Node{
 };
 class Graph {
   private:
+    /*
+     * Adjacency List Data structure
+     */
     std::vector < std::list<Node> > _m;
     const int _NUM_NODES;
     const int _NUM_EDGES;
@@ -27,7 +30,6 @@ class Graph {
     Graph(int NUM_NODES, int NUM_EDGES);
 
     void insert(int x, int y, int weight);
-    int vertex(int x, int index);
     std::list<Node>& operator [] (int x);
     void print();
 };
@@ -55,7 +57,7 @@ int Graph::num_edges() const{
     return _NUM_EDGES;
 }
 /**
- * Insert an edge
+ * Insert an edge.
  */
 void Graph::insert(int x, int y, int weight) {
     Node node(y, weight);

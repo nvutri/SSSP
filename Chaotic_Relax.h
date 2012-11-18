@@ -17,7 +17,7 @@
 #include "Atomic.h"
 
 #define MAX_THREADS 16
-#define STEALING_PERCENTAGE 1/2
+#define STEALING_PERCENTAGE 1/3
 
 using namespace std;
 
@@ -42,7 +42,7 @@ bool steal_work(p_thread_parm_t* parm, thread_parm_t::work_type& my_work, int my
             //Start stealing
             exists_busy_threads = true;
             //Acquire locking
-            work_list_lock.acquire();
+//            work_list_lock.acquire();
             for (unsigned i = 0; i < other_work.size() * STEALING_PERCENTAGE; ++i) {
 
                 v = other_work.top();
@@ -50,7 +50,7 @@ bool steal_work(p_thread_parm_t* parm, thread_parm_t::work_type& my_work, int my
                 other_work.pop();
             }
             //Release Locking
-            work_list_lock.unlock();
+//            work_list_lock.unlock();
             return true;
         }
     }
