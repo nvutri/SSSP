@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <set>
 
 #include "Graph.h"
 #include "SpinLock.h"
@@ -23,8 +24,9 @@
 
 using namespace std;
 
-static priority_queue<int, vector<int>, CompareNode> bucket;
+static set<int> bucket;
 static SpinLock bucket_lock;
+static vector<bool> node_flag;
 /**
  * Relax all edges surrounding node u
  * @param u: source node to relax around
@@ -55,16 +57,13 @@ void *delta_node_relax(void *parm) {
             changed = atomic_min(&dist[v], cost);
             if (changed) {
                 //Push node v to the work list
-                if (dist[v] < DELTA_MAX){
-                    work.push(v);
+                if (dist[v] >= DELTA_MAX){
+                    bucket.insert(v);
                 }
                 else{
-                    bucket_lock.acquire();
-                    bucket.push(v);
-                    bucket_lock.unlock();
+                    work.push(v);
                 }
             }
-
         }
     }
 
@@ -86,7 +85,6 @@ void init_delta_thread_data(p_thread_parm_t* parm, Graph* const p_A,
 
     //Determine the workload on each thread
     int NUM_THREADS = num_threads;
-//    cerr << "Delta = " << DELTA_MAX << endl;
 
     for (int thread_id = 0; thread_id < NUM_THREADS; ++thread_id) {
         p_thread_parm_t& thread = parm[thread_id];
@@ -96,34 +94,34 @@ void init_delta_thread_data(p_thread_parm_t* parm, Graph* const p_A,
         thread->DELTA_MAX = DELTA_MAX;
         thread->busy = false;
     }
-//    dist_print(p_A->num_nodes());
     //Initialize the thread_work list
     int thread_id = 0;
-    while (!bucket.empty() && dist[bucket.top()] < DELTA_MAX) {
-        int v = bucket.top();
-        p_thread_parm_t& thread = parm[thread_id];
-//        cerr << "Thread: " << thread_id << " | " << v << endl;
-        thread->work_list.push(v);
-        bucket.pop();
-        thread_id = (thread_id + 1) % NUM_THREADS;
+    set<int>::iterator it;
+    for (it = bucket.begin(); it!=bucket.end(); it++){
+        int v = *it;
+        if (dist[v] < DELTA_MAX){
+            p_thread_parm_t& thread = parm[thread_id];
+            thread->work_list.push(v);
+            bucket.erase(it);
+            thread_id = (thread_id + 1) % NUM_THREADS;
+        }
     }
 }
 
-int maxEdge(Graph&A){
+void find_max_min_edge(Graph&A, int& maxEdge, int& minEdge){
     int N = A.num_nodes();
-    int maxWeight = 0;
+    maxEdge = 0;
+    minEdge = MAX_VALUE;
 
     for (int u = 0; u < N; ++u) {
         list<Node>& edges = A[u];
         list<Node>::iterator iterator;
         for (iterator = edges.begin(); iterator != edges.end(); ++iterator) {
             Node node = *iterator;
-            if (node._weight > maxWeight)
-                maxWeight = node._weight;
+            maxEdge = max(maxEdge, node._weight);
+            minEdge = max(minEdge, node._weight);
         }
     }
-
-    return maxWeight;
 }
 /**
  * Chaotic Relaxation
@@ -138,15 +136,16 @@ void Delta_Stepping(Graph& A, const int SOURCE, const int NUM_THREADS) {
     p_thread_parm_t parm[MAX_THREADS];
     pthread_t threads[MAX_THREADS];
 
-    //Init Spin Locking
-    work_list_lock = SpinLock();
-
     //Init param for threads
     create_threads_storage(parm, NUM_THREADS);
 
-    bucket.push(SOURCE);
+    //Init bucket work list
+    bucket.clear();
+    bucket.insert(SOURCE);
 
-    const int DELTA = maxEdge(A);
+    int maxEdge, minEdge;
+    find_max_min_edge(A, maxEdge, minEdge);
+    const int DELTA = (maxEdge + minEdge) / 2;
     int DELTA_MAX = 0;
     int i_d = 0;
     while (!bucket.empty() && DELTA_MAX < MAX_VALUE ) {
@@ -175,8 +174,7 @@ void Delta_Stepping(Graph& A, const int SOURCE, const int NUM_THREADS) {
          */
         join_threads(threads, NUM_THREADS);
     }
-//    cerr << "NUM STEPS: " << i_d << endl;
-//Clean up data passed to threads
+    //Clean up data passed to threads
     delete_threads_data(parm, NUM_THREADS);
 
 }
