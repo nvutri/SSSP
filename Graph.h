@@ -7,10 +7,10 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
 
-struct Node{
+struct Edge{
     int _vertex;
     int _weight;
-    Node(int vertex, int weight):
+    Edge(int vertex, int weight):
         _vertex(vertex), _weight(weight){
     }
 
@@ -20,7 +20,7 @@ class Graph {
     /*
      * Adjacency List Data structure
      */
-    std::vector < std::list<Node> > _m;
+    std::vector < std::list<Edge> > _m;
     const int _NUM_NODES;
     const int _NUM_EDGES;
 
@@ -30,7 +30,7 @@ class Graph {
     Graph(int NUM_NODES, int NUM_EDGES);
 
     void insert(int x, int y, int weight);
-    std::list<Node>& operator [] (int x);
+    std::list<Edge>& operator [] (int x);
     void print();
 };
 
@@ -60,7 +60,7 @@ int Graph::num_edges() const{
  * Insert an edge.
  */
 void Graph::insert(int x, int y, int weight) {
-    Node node(y, weight);
+    Edge node(y, weight);
     _m[x].push_back(node );
 }
 
@@ -68,7 +68,7 @@ void Graph::insert(int x, int y, int weight) {
  * @return: the edges from node,
  * @param: x node
  */
-std::list<Node>& Graph::operator [] (int x){
+std::list<Edge>& Graph::operator [] (int x){
     return _m[ x ];
 }
 
@@ -77,10 +77,10 @@ std::list<Node>& Graph::operator [] (int x){
  */
 void Graph::print() {
     for (unsigned int i = 0; i < _m.size(); ++i) {
-        std::list<Node> x = _m[i];
-        std::list<Node>::iterator iterator;
+        std::list<Edge> x = _m[i];
+        std::list<Edge>::iterator iterator;
         for (iterator = x.begin(); iterator != x.end(); ++iterator) {
-            Node node = *iterator;
+            Edge node = *iterator;
             std::cout << i << " " << node._vertex << " " << node._weight << std::endl;
         }
     }

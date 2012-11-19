@@ -76,11 +76,11 @@ void *chaotic_node_relax(void *parm) {
         work.pop();
         work_list_lock.unlock();
 
-        list<Node>& edges = A[u];
-        list<Node>::iterator iterator;
+        list<Edge>& edges = A[u];
+        list<Edge>::iterator iterator;
 
         for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
-            Node node = *iterator;
+            Edge node = *iterator;
             v = node._vertex;
             cost = dist[u] + node._weight;
             changed = atomic_min(&dist[v], cost);

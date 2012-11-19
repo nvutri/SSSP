@@ -37,10 +37,10 @@ void *rb_node_relax(void *parm) {
 
     for (int i = LEFT; i < RIGHT; ++i) {
         int u = rb_work[i];
-        list<Node>& edges = A[u];
-        list<Node>::iterator iterator;
+        list<Edge>& edges = A[u];
+        list<Edge>::iterator iterator;
         for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
-            Node node = *iterator;
+            Edge node = *iterator;
             v = node._vertex;
             //Crictical computation and decision
             //Acquire Spin Lock

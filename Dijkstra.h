@@ -23,10 +23,10 @@ void Dijkstra(Graph& A, const int SOURCE) {
 	while (!queue.empty()){
 		x = queue.top();
 		queue.pop();
-        std::list<Node>& edges = A[x];
-        std::list<Node>::const_iterator iterator;
+        std::list<Edge>& edges = A[x];
+        std::list<Edge>::const_iterator iterator;
         for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
-            Node node = *iterator;
+            Edge node = *iterator;
 		    y = node._vertex;
 			if ( dist[y] > dist[x] + node._weight ){
 				dist[y] = dist[x] +  node._weight;

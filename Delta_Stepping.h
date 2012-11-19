@@ -42,18 +42,21 @@ void *delta_node_relax(void *parm) {
     p->busy = true;
     const int DELTA_MAX = p->DELTA_MAX;
     while (!work.empty()) {
-
+        //getting work
+        work_list_lock.acquire();
         u = work.top();
         work.pop();
+        work_list_lock.unlock();
 
-        list<Node>& edges = A[u];
-        list<Node>::iterator iterator;
+        //getting all the edges
+        list<Edge>& edges = A[u];
+        list<Edge>::iterator iterator;
 
         for (iterator = edges.begin(); iterator != edges.end(); ++iterator) {
-            Node node = *iterator;
-            v = node._vertex;
+            Edge edge = *iterator;
+            v = edge._vertex;
             // light situation
-            cost = dist[u] + node._weight;
+            cost = dist[u] + edge._weight;
             changed = atomic_min(&dist[v], cost);
             if (changed) {
                 //Push node v to the work list
@@ -61,7 +64,9 @@ void *delta_node_relax(void *parm) {
                     bucket.insert(v);
                 }
                 else{
+                    work_list_lock.acquire();
                     work.push(v);
+                    work_list_lock.unlock();
                 }
             }
         }
@@ -114,10 +119,10 @@ void find_max_min_edge(Graph&A, int& maxEdge, int& minEdge){
     minEdge = MAX_VALUE;
 
     for (int u = 0; u < N; ++u) {
-        list<Node>& edges = A[u];
-        list<Node>::iterator iterator;
+        list<Edge>& edges = A[u];
+        list<Edge>::iterator iterator;
         for (iterator = edges.begin(); iterator != edges.end(); ++iterator) {
-            Node node = *iterator;
+            Edge node = *iterator;
             maxEdge = max(maxEdge, node._weight);
             minEdge = max(minEdge, node._weight);
         }

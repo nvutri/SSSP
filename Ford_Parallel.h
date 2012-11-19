@@ -32,10 +32,10 @@ void *node_relax(void *parm) {
     const int RIGHT = p->right;
 
     for (int u = LEFT; u < RIGHT; ++u) {
-        std::list<Node>& edges = A[u];
-        std::list<Node>::iterator iterator;
+        std::list<Edge>& edges = A[u];
+        std::list<Edge>::iterator iterator;
         for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
-            Node node = *iterator;
+            Edge node = *iterator;
             v = node._vertex;
             //Crictical computation and decision
             pthread_mutex_lock(&dist_lock);

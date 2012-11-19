@@ -11,10 +11,10 @@ void Bellmanford(Graph& A, const int SOURCE) {
 
     for (int i = 0; i < N; ++i) {
         for (int x = 0; x < N; ++x) {
-            std::list<Node> edges = A[x];
-            std::list<Node>::const_iterator iterator;
+            std::list<Edge> edges = A[x];
+            std::list<Edge>::const_iterator iterator;
             for (iterator = edges.begin(); iterator != edges.end(); ++iterator) {
-                Node node = *iterator;
+                Edge node = *iterator;
                 int y = node._vertex;
                 cost = dist[x] + node._weight;
                 if (cost < dist[y]) {

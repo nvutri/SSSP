@@ -36,10 +36,10 @@ void dist_init(int SOURCE, const int N) {
 
 void dist_verify(Graph& A, const int N) {
     for (int x = 0; x < N; ++x) {
-        std::list<Node> edges = A[x];
-        std::list<Node>::iterator iterator;
+        std::list<Edge> edges = A[x];
+        std::list<Edge>::iterator iterator;
         for ( iterator = edges.begin(); iterator != edges.end(); ++iterator) {
-            Node node = *iterator;
+            Edge node = *iterator;
             int y = node._vertex;
             int weight = node._weight;
             assert(dist[x] + weight >= dist[y]);
