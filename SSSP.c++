@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     Graph A(NUM_NODES, NUM_EDGES);
     read_graph(A);
 
-    if (argc != 3){
+    if (argc < 3){
         std::cerr << "Wrong Number of Inputs" << std::endl;
         std::cerr << "USAGE: SSSP.app [Algorithm] [Number of threads]" << std::endl;
         exit(-1);
@@ -48,6 +48,9 @@ int main(int argc, char** argv) {
     const int SOURCE = 1;
     const char* ALGORITHM = argv[1];
     const int NUM_THREADS = atoi(argv[2]);
+    int DELTA_TIMES = 1;
+    if (argc > 3)
+        DELTA_TIMES = atoi(argv[3]);
 
     //Initialization
     dist_init(SOURCE, NUM_NODES);
@@ -61,7 +64,7 @@ int main(int argc, char** argv) {
     if ( strcmp(ALGORITHM, "CT") == 0)
         Chaotic_Relaxation(A, SOURCE, NUM_THREADS);
     if ( strcmp(ALGORITHM, "DT") == 0)
-        Delta_Stepping(A, SOURCE, NUM_THREADS);
+        Delta_Stepping(A, SOURCE, NUM_THREADS, DELTA_TIMES);
 
     dist_verify(A, NUM_NODES);
     dist_print(NUM_NODES);

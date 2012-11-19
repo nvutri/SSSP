@@ -116,6 +116,7 @@ void init_delta_thread_data(p_thread_parm_t* parm, Graph* const p_A,
             DELTA_FLAG = 0;
         }
     }
+    cerr << " Work Size: " <<  parm[0]->work_list.size() << endl;
     //Increase DELTA_FLAG
     DELTA_FLAG++ ;
 }
@@ -138,7 +139,8 @@ int find_max_edge(Graph&A){
  * Chaotic Relaxation
  * @A: the graph
  */
-void Delta_Stepping(Graph& A, const int SOURCE, const int NUM_THREADS) {
+void Delta_Stepping(Graph& A, const int SOURCE, const int NUM_THREADS,
+                    const int DELTA_ALLOWED_TIMES = 1) {
     /**
      * Define threads and parameters for them
      */
@@ -157,9 +159,9 @@ void Delta_Stepping(Graph& A, const int SOURCE, const int NUM_THREADS) {
 
     const int maxEdge = find_max_edge(A);
 
-    const int DELTA_ALLOWED_TIMES = 16;
+
     const int DELTA = maxEdge / DELTA_ALLOWED_TIMES + 1;
-//    cerr << DELTA << endl;
+    cerr << DELTA << endl;
     int DELTA_MAX = 0;
     int num_runs = 0;
     DELTA_FLAG = 0;
@@ -190,7 +192,6 @@ void Delta_Stepping(Graph& A, const int SOURCE, const int NUM_THREADS) {
          */
         join_threads(threads, NUM_THREADS);
     }
-//    cerr << "NUM_TIMES: " << num_runs << endl;
     //Clean up data passed to threads
     delete_threads_data(parm, NUM_THREADS);
 
