@@ -27,6 +27,8 @@ using namespace std;
 static set<int> bucket;
 static SpinLock bucket_lock;
 static vector<bool> node_flag;
+static int DELTA_FLAG;
+
 /**
  * Relax all edges surrounding node u
  * @param u: source node to relax around
@@ -61,7 +63,9 @@ void *delta_node_relax(void *parm) {
             if (changed) {
                 //Push node v to the work list
                 if (dist[v] >= DELTA_MAX){
+                    bucket_lock.acquire();
                     bucket.insert(v);
+                    bucket_lock.unlock();
                 }
                 else{
                     work_list_lock.acquire();
@@ -109,24 +113,26 @@ void init_delta_thread_data(p_thread_parm_t* parm, Graph* const p_A,
             thread->work_list.push(v);
             bucket.erase(it);
             thread_id = (thread_id + 1) % NUM_THREADS;
+            DELTA_FLAG = 0;
         }
     }
+    //Increase DELTA_FLAG
+    DELTA_FLAG++ ;
 }
 
-void find_max_min_edge(Graph&A, int& maxEdge, int& minEdge){
+int find_max_edge(Graph&A){
     int N = A.num_nodes();
-    maxEdge = 0;
-    minEdge = MAX_VALUE;
+    int maxEdge = 0;
 
     for (int u = 0; u < N; ++u) {
         list<Edge>& edges = A[u];
         list<Edge>::iterator iterator;
         for (iterator = edges.begin(); iterator != edges.end(); ++iterator) {
-            Edge node = *iterator;
-            maxEdge = max(maxEdge, node._weight);
-            minEdge = max(minEdge, node._weight);
+            Edge edge = *iterator;
+            maxEdge = max(maxEdge, edge._weight);
         }
     }
+    return maxEdge;
 }
 /**
  * Chaotic Relaxation
@@ -148,14 +154,20 @@ void Delta_Stepping(Graph& A, const int SOURCE, const int NUM_THREADS) {
     bucket.clear();
     bucket.insert(SOURCE);
 
-    int maxEdge, minEdge;
-    find_max_min_edge(A, maxEdge, minEdge);
-    const int DELTA = (maxEdge + minEdge) / 2;
+
+    const int maxEdge = find_max_edge(A);
+
+    const int DELTA_ALLOWED_TIMES = 16;
+    const int DELTA = maxEdge / DELTA_ALLOWED_TIMES + 1;
+//    cerr << DELTA << endl;
     int DELTA_MAX = 0;
-    int i_d = 0;
-    while (!bucket.empty() && DELTA_MAX < MAX_VALUE ) {
-        DELTA_MAX = (i_d + 1) * DELTA;
-        i_d++;
+    int num_runs = 0;
+    DELTA_FLAG = 0;
+
+    while (!bucket.empty() && DELTA_FLAG <= DELTA_ALLOWED_TIMES
+             && DELTA_MAX < MAX_VALUE ) {
+        DELTA_MAX = (num_runs + 1) * DELTA;
+        num_runs++;
         init_delta_thread_data(parm, &A, NUM_THREADS, DELTA_MAX);
 
         /**
@@ -173,12 +185,12 @@ void Delta_Stepping(Graph& A, const int SOURCE, const int NUM_THREADS) {
                 exit(-1);
             }
         }
-
         /**
          * Wait for all threads to finish
          */
         join_threads(threads, NUM_THREADS);
     }
+//    cerr << "NUM_TIMES: " << num_runs << endl;
     //Clean up data passed to threads
     delete_threads_data(parm, NUM_THREADS);
 
