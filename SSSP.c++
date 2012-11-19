@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "Graph.h"
 #include "Distance.h"
@@ -39,9 +40,10 @@ int main(int argc, char** argv) {
     Graph A(NUM_NODES, NUM_EDGES);
     read_graph(A);
 
-    if (argc < 3){
+    if (argc < 3) {
         std::cerr << "Wrong Number of Inputs" << std::endl;
-        std::cerr << "USAGE: SSSP.app [Algorithm] [Number of threads]" << std::endl;
+        std::cerr << "USAGE: SSSP.app [Algorithm] [Number of threads]"
+                  << std::endl;
         exit(-1);
     }
 
@@ -56,15 +58,19 @@ int main(int argc, char** argv) {
     dist_init(SOURCE, NUM_NODES);
 
 //    fprintf(stderr, "%s\n%d\n", ALGORITHM, NUM_THREADS);
-
-    if ( strcmp(ALGORITHM, "DIJK") == 0)
+    int start = clock();
+    if (strcmp(ALGORITHM, "DIJK") == 0)
         Dijkstra(A, SOURCE);
-    if ( strcmp(ALGORITHM, "RB") == 0)
+    if (strcmp(ALGORITHM, "RB") == 0)
         Round_Based(A, SOURCE, NUM_THREADS);
-    if ( strcmp(ALGORITHM, "CT") == 0)
+    if (strcmp(ALGORITHM, "CT") == 0)
         Chaotic_Relaxation(A, SOURCE, NUM_THREADS);
-    if ( strcmp(ALGORITHM, "DT") == 0)
+    if (strcmp(ALGORITHM, "DT") == 0)
         Delta_Stepping(A, SOURCE, NUM_THREADS, DELTA_TIMES);
+
+    int stop = clock();
+    int elapsed_time = stop - start;
+    cout << "Execution Time: " << ((float) elapsed_time) / CLOCKS_PER_SEC << endl;
 
     dist_verify(A, NUM_NODES);
 //    dist_print(NUM_NODES);
@@ -117,5 +123,4 @@ void read_graph(Graph& A) {
             break;
     }
 }
-
 

@@ -64,7 +64,9 @@ void *delta_node_relax(void *parm) {
                 //Push node v to the work list
                 if (dist[v] >= DELTA_MAX){
                     bucket_lock.acquire();
-                    bucket.insert(v);
+                    if (bucket.count(v) == 0){
+                        bucket.insert(v);
+                    }
                     bucket_lock.unlock();
                 }
                 else{
@@ -116,7 +118,7 @@ void init_delta_thread_data(p_thread_parm_t* parm, Graph* const p_A,
             DELTA_FLAG = 0;
         }
     }
-//    cerr << " Work Size: " <<  parm[0]->work_list.size() << endl;
+    cout << " Work Size: " <<  parm[0]->work_list.size() << endl;
     //Increase DELTA_FLAG
     DELTA_FLAG++ ;
 }
@@ -161,7 +163,7 @@ void Delta_Stepping(Graph& A, const int SOURCE, const int NUM_THREADS,
 
 
     const int DELTA = maxEdge / DELTA_ALLOWED_TIMES + 1;
-//    cerr << DELTA << endl;
+    cout << "DELTA: " << DELTA << endl;
     int DELTA_MAX = 0;
     int num_runs = 0;
     DELTA_FLAG = 0;
