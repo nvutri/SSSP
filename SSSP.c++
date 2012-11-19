@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
         Delta_Stepping(A, SOURCE, NUM_THREADS, DELTA_TIMES);
 
     dist_verify(A, NUM_NODES);
-    dist_print(NUM_NODES);
+//    dist_print(NUM_NODES);
 
     return 0;
 }
